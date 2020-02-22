@@ -2,12 +2,12 @@
 
 Github: [http://github.com/ultraembedded/biriscv](http://github.com/ultraembedded/biriscv)
 
-*Coming soon...*
+[biRISC-V](images/biRISC-V.png)
 
 ## Features
 * 32-bit RISC-V ISA CPU core.
-* Superscalar (dual-issue) in-order 5 or 6 stage pipeline.
-* Support RISC-V’s integer (I), multiplication and division (M), and CSR instructions (Z) extensions (RV32IMCZicsr).
+* Superscalar (dual-issue) in-order 6 or 7 stage pipeline.
+* Support RISC-V’s integer (I), multiplication and division (M), and CSR instructions (Z) extensions (RV32IMZicsr).
 * Branch prediction (bimodel/gshare).
 * 64-bit instruction fetch, 32-bit data access.
 * 2 x integer ALU (arithmetic, shifters and branch units).
@@ -16,8 +16,8 @@ Github: [http://github.com/ultraembedded/biriscv](http://github.com/ultraembedde
 * Verified using [Google's RISCV-DV](https://github.com/google/riscv-dv) random instruction sequences using cosimulation against [C++ ISA model](https://github.com/ultraembedded/exactstep).
 * Support for instruction / data cache, AXI bus interfaces or tightly coupled memories.
 * Synthesizable Verilog 2001, Verilator and FPGA friendly.
-* Coremark:  **4.0 CoreMark/MHz**
-* Dhrystone: **1.7 DMIPS/MHz** ('legal compile options' / 337 instructions per iteration)
+* Coremark:  **4.1 CoreMark/MHz**
+* Dhrystone: **1.9 DMIPS/MHz** ('legal compile options' / 337 instructions per iteration)
 
 ## Similar Cores
 * [SiFive E76](https://www.sifive.com/cores/e76)
