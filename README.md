@@ -2,7 +2,7 @@
 
 Github: [http://github.com/ultraembedded/biriscv](http://github.com/ultraembedded/biriscv)
 
-![biRISC-V](images/biRISC-V.png)
+![biRISC-V](docs/biRISC-V.png)
 
 ## Features
 * 32-bit RISC-V ISA CPU core.
