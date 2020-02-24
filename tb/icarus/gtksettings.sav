@@ -1,0 +1,101 @@
+[*]
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Mon Feb 24 23:52:21 2020
+[*]
+[timestart] 0
+[size] 2560 1385
+[pos] -1 -1
+*-12.000000 9125 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] tb_top.
+[treeopen] tb_top.u_dut.
+[treeopen] tb_top.u_dut.u_issue.
+[treeopen] tb_top.u_dut.u_issue.u_regfile.
+[sst_width] 202
+[signals_width] 206
+[sst_expanded] 1
+[sst_vpaned_height] 420
+@28
+tb_top.clk
+tb_top.rst
+@800200
+-I
+@28
+tb_top.mem_i_rd_w
+@22
+tb_top.mem_i_pc_w[31:0]
+@28
+tb_top.mem_i_valid_w
+@22
+tb_top.mem_i_inst_w[63:0]
+@1000200
+-I
+@800200
+-D
+@28
+tb_top.mem_d_rd_w
+@22
+tb_top.mem_d_wr_w[3:0]
+tb_top.mem_d_addr_w[31:0]
+tb_top.u_mem.mem_d_req_tag_i[10:0]
+tb_top.mem_d_data_wr_w[31:0]
+@29
+tb_top.mem_d_accept_w
+@28
+tb_top.mem_d_ack_w
+@22
+tb_top.u_mem.mem_d_resp_tag_o[10:0]
+tb_top.mem_d_data_rd_w[31:0]
+@28
+tb_top.mem_d_error_w
+@1000200
+-D
+@800200
+-PC
+@22
+tb_top.u_dut.u_frontend.u_fetch.pc_f_q[31:0]
+tb_top.u_dut.u_frontend.u_fetch.pc_d_q[31:0]
+tb_top.u_dut.u_issue.pc_x_q[31:0]
+tb_top.u_dut.u_issue.u_pipe0_ctrl.pc_e1_q[31:0]
+tb_top.u_dut.u_issue.u_pipe0_ctrl.pc_e2_q[31:0]
+tb_top.u_dut.u_issue.u_pipe0_ctrl.pc_wb_q[31:0]
+@1000200
+-PC
+@800200
+-Regfile
+@22
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x0_zero_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x1_ra_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x2_sp_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x3_gp_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x4_tp_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x5_t0_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x6_t1_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x7_t2_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x8_s0_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x9_s1_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x10_a0_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x11_a1_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x12_a2_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x13_a3_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x14_a4_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x15_a5_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x16_a6_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x17_a7_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x18_s2_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x19_s3_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x20_s4_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x21_s5_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x22_s6_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x23_s7_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x24_s8_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x25_s9_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x26_s10_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x27_s11_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x28_t3_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x29_t4_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x30_t5_w[31:0]
+tb_top.u_dut.u_issue.u_regfile.REGFILE.x31_t6_w[31:0]
+@1000200
+-Regfile
+[pattern_trace] 1
+[pattern_trace] 0
