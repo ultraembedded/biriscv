@@ -21,7 +21,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//-----------------------------------------------------------------`include "biriscv_defs.v"
+//-----------------------------------------------------------------
+`include "biriscv_defs.v"
 
 module biriscv_trace_sim
 (
