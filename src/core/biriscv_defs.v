@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------
 //                         biRISC-V CPU
-//                            V0.5.0
+//                            V0.6.0
 //                     Ultra-Embedded.com
 //                     Copyright 2019-2020
 //
@@ -308,11 +308,10 @@
 // CSR Registers - Simulation control
 //--------------------------------------------------------------------
 `define CSR_DSCRATCH       12'h7b2
-`define CSR_DSCRATCH_MASK  32'hFFFFFFFF
+`define CSR_SIM_CTRL       12'h8b2
+`define CSR_SIM_CTRL_MASK  32'hFFFFFFFF
     `define CSR_SIM_CTRL_EXIT (0 << 24)
     `define CSR_SIM_CTRL_PUTC (1 << 24)
-    `define CSR_SIM_CTRL_GETC (2 << 24)
-    `define CSR_SIM_CYCLE_DELTA (128 << 24)
 
 //--------------------------------------------------------------------
 // CSR Registers
@@ -357,6 +356,10 @@
 `define CSR_MTIMEH_MASK   32'hFFFFFFFF
 `define CSR_MHARTID       12'hF14
 `define CSR_MHARTID_MASK  32'hFFFFFFFF
+
+// Non-std
+`define CSR_MTIMECMP        12'h7c0
+`define CSR_MTIMECMP_MASK   32'hFFFFFFFF
 
 //-----------------------------------------------------------------
 // CSR Registers - Supervisor
@@ -415,10 +418,50 @@
 `define SR_MPP_S       `PRIV_SUPER
 `define SR_MPP_M       `PRIV_MACHINE
 
-`define SR_SUM          (1 << 18)
 `define SR_SUM_R        18
+`define SR_SUM          (1 << `SR_SUM_R)
+
+`define SR_MPRV_R       17
+`define SR_MPRV         (1 << `SR_MPRV_R)
+
+`define SR_MXR_R        19
+`define SR_MXR          (1 << `SR_MXR_R)
 
 `define SR_SMODE_MASK   (`SR_UIE | `SR_SIE | `SR_UPIE | `SR_SPIE | `SR_SPP | `SR_SUM)
+
+//--------------------------------------------------------------------
+// SATP definitions
+//--------------------------------------------------------------------
+`define SATP_PPN_R        19:0 // TODO: Should be 21??
+`define SATP_ASID_R       30:22
+`define SATP_MODE_R       31
+
+//--------------------------------------------------------------------
+// MMU Defs (SV32)
+//--------------------------------------------------------------------
+`define MMU_LEVELS        2
+`define MMU_PTIDXBITS     10
+`define MMU_PTESIZE       4
+`define MMU_PGSHIFT       (`MMU_PTIDXBITS + 2)
+`define MMU_PGSIZE        (1 << `MMU_PGSHIFT)
+`define MMU_VPN_BITS      (`MMU_PTIDXBITS * `MMU_LEVELS)
+`define MMU_PPN_BITS      (32 - `MMU_PGSHIFT)
+`define MMU_VA_BITS       (`MMU_VPN_BITS + `MMU_PGSHIFT)
+
+`define PAGE_PRESENT      0
+`define PAGE_READ         1
+`define PAGE_WRITE        2
+`define PAGE_EXEC         3
+`define PAGE_USER         4
+`define PAGE_GLOBAL       5
+`define PAGE_ACCESSED     6
+`define PAGE_DIRTY        7
+`define PAGE_SOFT         9:8
+
+`define PAGE_FLAGS       10'h3FF
+
+`define PAGE_PFN_SHIFT   10
+`define PAGE_SIZE        4096
 
 //--------------------------------------------------------------------
 // Exception Causes
@@ -440,8 +483,10 @@
 `define EXCEPTION_PAGE_FAULT_INST          6'h1c
 `define EXCEPTION_PAGE_FAULT_LOAD          6'h1d
 `define EXCEPTION_PAGE_FAULT_STORE         6'h1f
+`define EXCEPTION_EXCEPTION                6'h10
 `define EXCEPTION_INTERRUPT                6'h20
 `define EXCEPTION_ERET                     6'h30
+`define EXCEPTION_FENCE                    6'h31
 `define EXCEPTION_TYPE_MASK                6'h30
 `define EXCEPTION_SUBTYPE_R                3:0
 

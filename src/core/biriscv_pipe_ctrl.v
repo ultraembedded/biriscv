@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------
 //                         biRISC-V CPU
-//                            V0.5.0
+//                            V0.6.0
 //                     Ultra-Embedded.com
 //                     Copyright 2019-2020
 //
@@ -357,7 +357,19 @@ begin
 end
 else if (~issue_stall_i)
 begin
-    valid_wb_q      <= valid_e2_q;    
+    // Squash instruction valid on memory faults
+    case (exception_e2_r)
+    `EXCEPTION_MISALIGNED_LOAD,
+    `EXCEPTION_FAULT_LOAD,
+    `EXCEPTION_MISALIGNED_STORE,
+    `EXCEPTION_FAULT_STORE,
+    `EXCEPTION_PAGE_FAULT_LOAD,
+    `EXCEPTION_PAGE_FAULT_STORE:
+        valid_wb_q      <= 1'b0;
+    default:
+        valid_wb_q      <= valid_e2_q;
+    endcase
+
     csr_wr_wb_q     <= csr_wr_e2_q;  // TODO: Fault disable???
     csr_wdata_wb_q  <= csr_wdata_e2_q;
 
@@ -382,7 +394,7 @@ begin
 end
 
 assign valid_wb_o      = valid_wb_q & ~issue_stall_i;
-assign csr_wb_o        = ctrl_wb_q[`PCINFO_CSR]; // TODO: Fault disable???
+assign csr_wb_o        = ctrl_wb_q[`PCINFO_CSR] & ~issue_stall_i; // TODO: Fault disable???
 assign rd_wb_o         = {5{(valid_wb_o && ctrl_wb_q[`PCINFO_RD_VALID] && ~stall_o)}} & opcode_wb_q[`RD_IDX_R];
 assign result_wb_o     = result_wb_q;
 assign pc_wb_o         = pc_wb_q;

@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------
 //                         biRISC-V CPU
-//                            V0.5.0
+//                            V0.6.0
 //                     Ultra-Embedded.com
 //                     Copyright 2019-2020
 //
@@ -77,6 +77,7 @@ module biriscv_issue
     ,input  [ 31:0]  branch_exec0_pc_i
     ,input           branch_d_exec0_request_i
     ,input  [ 31:0]  branch_d_exec0_pc_i
+    ,input  [  1:0]  branch_d_exec0_priv_i
     ,input           branch_exec1_request_i
     ,input           branch_exec1_is_taken_i
     ,input           branch_exec1_is_not_taken_i
@@ -87,8 +88,10 @@ module biriscv_issue
     ,input  [ 31:0]  branch_exec1_pc_i
     ,input           branch_d_exec1_request_i
     ,input  [ 31:0]  branch_d_exec1_pc_i
+    ,input  [  1:0]  branch_d_exec1_priv_i
     ,input           branch_csr_request_i
     ,input  [ 31:0]  branch_csr_pc_i
+    ,input  [  1:0]  branch_csr_priv_i
     ,input  [ 31:0]  writeback_exec0_value_i
     ,input  [ 31:0]  writeback_exec1_value_i
     ,input           writeback_mem_valid_i
@@ -109,6 +112,7 @@ module biriscv_issue
     ,output          fetch1_accept_o
     ,output          branch_request_o
     ,output [ 31:0]  branch_pc_o
+    ,output [  1:0]  branch_priv_o
     ,output          branch_info_request_o
     ,output          branch_info_is_taken_o
     ,output          branch_info_is_not_taken_o
@@ -192,6 +196,7 @@ wire squash_w;
 wire        single_issue_w;
 wire        dual_issue_w;
 reg  [31:0] pc_x_q;
+reg   [1:0] priv_x_q;
 
 always @ (posedge clk_i or posedge rst_i)
 if (rst_i)
@@ -206,6 +211,12 @@ else if (dual_issue_w)
     pc_x_q <= pc_x_q + 32'd8;
 else if (single_issue_w)
     pc_x_q <= pc_x_q + 32'd4;
+
+always @ (posedge clk_i or posedge rst_i)
+if (rst_i)
+    priv_x_q <= `PRIV_MACHINE;
+else if (branch_csr_request_i)
+    priv_x_q <= branch_csr_priv_i;
 
 wire fault_unaligned_inst_w = (pc_x_q[1:0] != 2'b00);
 
@@ -243,6 +254,7 @@ end
 // Note: Correctly predicted branches are silent
 assign branch_request_o          = branch_csr_request_i | mispredicted_r;
 assign branch_pc_o               = branch_csr_request_i ? branch_csr_pc_i : pc_x_q;
+assign branch_priv_o             = branch_csr_request_i ? branch_csr_priv_i : priv_x_q;
 
 //-------------------------------------------------------------
 // Instruction Decoder
@@ -614,7 +626,7 @@ else if (pipe0_squash_e1_e2_w || pipe1_squash_e1_e2_w)
     csr_pending_q <= 1'b0;
 else if (csr_opcode_valid_o && issue_a_csr_w)
     csr_pending_q <= 1'b1;
-else if (pipe0_valid_wb_w && pipe0_csr_wb_w)
+else if (pipe0_csr_wb_w)
     csr_pending_q <= 1'b0;
 
 assign squash_w = pipe0_squash_e1_e2_w || pipe1_squash_e1_e2_w;

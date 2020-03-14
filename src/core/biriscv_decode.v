@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------
 //                         biRISC-V CPU
-//                            V0.5.0
+//                            V0.6.0
 //                     Ultra-Embedded.com
 //                     Copyright 2019-2020
 //
@@ -48,6 +48,7 @@ module biriscv_decode
     ,input           fetch_out1_accept_i
     ,input           branch_request_i
     ,input  [ 31:0]  branch_pc_i
+    ,input  [  1:0]  branch_priv_i
 
     // Outputs
     ,output          fetch_in_accept_o
@@ -92,6 +93,7 @@ begin
     wire        fetch_in_fault_page_w;
     wire        fetch_in_fault_fetch_w;
     wire [1:0]  fetch_in_pred_branch_w;
+    wire [63:0] fetch_in_instr_raw_w;
     wire [63:0] fetch_in_instr_w;
     wire [31:0] fetch_in_pc_w;
     wire        fetch_in_valid_w;
@@ -109,9 +111,11 @@ begin
     assign {fetch_in_fault_page_w, 
             fetch_in_fault_fetch_w, 
             fetch_in_pred_branch_w, 
-            fetch_in_instr_w, 
+            fetch_in_instr_raw_w, 
             fetch_in_pc_w, 
             fetch_in_valid_w} = fetch_buffer_q;
+
+    assign fetch_in_instr_w = (fetch_in_fault_page_w | fetch_in_fault_fetch_w) ? 64'b0 : fetch_in_instr_raw_w;
 
     wire [7:0] info0_in_w;
     wire [9:0] info0_out_w;
@@ -213,7 +217,7 @@ begin
         ,.push_i(fetch_in_valid_i)
         ,.pc_in_i(fetch_in_pc_i)
         ,.pred_in_i(fetch_in_pred_branch_i)
-        ,.data_in_i(fetch_in_instr_i)
+        ,.data_in_i((fetch_in_fault_page_i | fetch_in_fault_fetch_i) ? 64'b0 : fetch_in_instr_i)
         ,.info0_in_i({fetch_in_fault_page_i, fetch_in_fault_fetch_i})
         ,.info1_in_i({fetch_in_fault_page_i, fetch_in_fault_fetch_i})
         ,.accept_o(fetch_in_accept_o)

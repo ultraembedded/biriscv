@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------
 //                         biRISC-V CPU
-//                            V0.5.0
+//                            V0.6.0
 //                     Ultra-Embedded.com
 //                     Copyright 2019-2020
 //
@@ -29,6 +29,7 @@ module biriscv_csr
 //-----------------------------------------------------------------
 #(
      parameter SUPPORT_MULDIV   = 1
+    ,parameter SUPPORT_SUPER    = 1
 )
 //-----------------------------------------------------------------
 // Ports
@@ -64,8 +65,14 @@ module biriscv_csr
     ,output [  5:0]  csr_result_e1_exception_o
     ,output          branch_csr_request_o
     ,output [ 31:0]  branch_csr_pc_o
+    ,output [  1:0]  branch_csr_priv_o
     ,output          take_interrupt_o
     ,output          ifence_o
+    ,output [  1:0]  mmu_priv_d_o
+    ,output          mmu_sum_o
+    ,output          mmu_mxr_o
+    ,output          mmu_flush_o
+    ,output [ 31:0]  mmu_satp_o
 );
 
 
@@ -95,11 +102,13 @@ wire ifence_w            = opcode_valid_i && ((opcode_opcode_i & `INST_IFENCE_MA
 //-----------------------------------------------------------------
 // CSR handling
 //-----------------------------------------------------------------
+wire [1:0]  current_priv_w;
 reg [1:0]   csr_priv_r;
 reg         csr_readonly_r;
 reg         csr_write_r;
 reg         set_r;
 reg         clr_r;
+reg         csr_fault_r;
 
 reg [31:0]  data_r;
 
@@ -116,7 +125,12 @@ begin
                        csrrsi_w | 
                        csrrci_w) ?
                             {27'b0, opcode_ra_idx_i} : opcode_ra_operand_i;
+
+    // Detect access fault on CSR access
+    csr_fault_r     = SUPPORT_SUPER ? (opcode_valid_i && (set_r | clr_r) && ((csr_write_r && csr_readonly_r) || (current_priv_w < csr_priv_r))) : 1'b0;
 end
+
+wire satp_update_w = (opcode_valid_i && (set_r || clr_r) && csr_write_r && (opcode_opcode_i[31:20] == `CSR_SATP));
 
 //-----------------------------------------------------------------
 // CSR register file
@@ -131,8 +145,12 @@ wire        csr_branch_w;
 wire [31:0] csr_target_w;
 
 wire [31:0] interrupt_w;
+wire [31:0] status_reg_w;
+wire [31:0] satp_reg_w;
 
 biriscv_csr_regfile
+#( .SUPPORT_MTIMECMP(1)
+  ,.SUPPORT_SUPER(SUPPORT_SUPER) )
 u_csrfile
 (
      .clk_i(clk_i)
@@ -160,6 +178,11 @@ u_csrfile
     ,.csr_branch_o(csr_branch_w)
     ,.csr_target_o(csr_target_w)
 
+    // Various CSR registers
+    ,.priv_o(current_priv_w)
+    ,.status_o(status_reg_w)
+    ,.satp_o(satp_reg_w)
+
     // Masked interrupt output
     ,.interrupt_o(interrupt_w)
 );
@@ -182,19 +205,27 @@ begin
 end
 else if (opcode_valid_i)
 begin
-    rd_valid_e1_q   <= (set_r || clr_r);
-    rd_result_e1_q  <= csr_rdata_w; // TODO: Access fault mux with 0...
+    rd_valid_e1_q   <= (set_r || clr_r) && ~csr_fault_r;
+
+    // Invalid instruction / CSR access fault?
+    // Record opcode for writing to csr_xtval later.
+    if (opcode_invalid_i || csr_fault_r)
+        rd_result_e1_q  <= opcode_opcode_i;
+    else    
+        rd_result_e1_q  <= csr_rdata_w;
 
     // E1 CSR exceptions
     if ((opcode_opcode_i & `INST_ECALL_MASK) == `INST_ECALL)
-        exception_e1_q  <= `EXCEPTION_ECALL;
+        exception_e1_q  <= `EXCEPTION_ECALL + {4'b0, current_priv_w};
     else if ((opcode_opcode_i & `INST_MRET_MASK) == `INST_MRET)
         exception_e1_q  <= `EXCEPTION_ERET; // TODO: MPRIV
     else if ((opcode_opcode_i & `INST_EBREAK_MASK) == `INST_EBREAK)
         exception_e1_q  <= `EXCEPTION_BREAKPOINT;
-    else if (opcode_invalid_i)
+    else if (opcode_invalid_i || csr_fault_r)
         exception_e1_q  <= `EXCEPTION_ILLEGAL_INSTRUCTION;
-    // TODO: CSR access fault
+    // Fence / MMU settings cause a pipeline flush
+    else if (satp_update_w || ifence_w || sfence_w)
+        exception_e1_q  <= `EXCEPTION_FENCE;
     else
         exception_e1_q  <= `EXCEPTION_W'b0;
 
@@ -233,6 +264,17 @@ else
 assign take_interrupt_o = take_interrupt_q;
 
 //-----------------------------------------------------------------
+// TLB flush
+//-----------------------------------------------------------------
+reg tlb_flush_q;
+
+always @ (posedge clk_i or posedge rst_i)
+if (rst_i)
+    tlb_flush_q <= 1'b0;
+else
+    tlb_flush_q <= satp_update_w || sfence_w;
+
+//-----------------------------------------------------------------
 // ifence
 //-----------------------------------------------------------------
 reg ifence_q;
@@ -265,12 +307,6 @@ begin
     branch_q        <= 1'b1;
     reset_q         <= 1'b0;
 end
-// Force a pipeline flush by a CSR unit branch to the next instruction after the fence
-else if (ifence_w)
-begin
-    branch_q        <= 1'b1;
-    branch_target_q <= opcode_pc_i + 32'd4;
-end
 else
 begin
     branch_q        <= csr_branch_w;
@@ -279,6 +315,15 @@ end
 
 assign branch_csr_request_o = branch_q;
 assign branch_csr_pc_o      = branch_target_q;
+assign branch_csr_priv_o    = satp_reg_w[`SATP_MODE_R] ? current_priv_w : `PRIV_MACHINE;
 
+//-----------------------------------------------------------------
+// MMU
+//-----------------------------------------------------------------
+assign mmu_priv_d_o     = status_reg_w[`SR_MPRV_R] ? status_reg_w[`SR_MPP_R] : current_priv_w;
+assign mmu_satp_o       = satp_reg_w;
+assign mmu_flush_o      = tlb_flush_q;
+assign mmu_sum_o        = status_reg_w[`SR_SUM_R];
+assign mmu_mxr_o        = status_reg_w[`SR_MXR_R];
 
 endmodule

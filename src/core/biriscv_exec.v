@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------
 //                         biRISC-V CPU
-//                            V0.5.0
+//                            V0.6.0
 //                     Ultra-Embedded.com
 //                     Copyright 2019-2020
 //
@@ -50,6 +50,7 @@ module biriscv_exec
     ,output [ 31:0]  branch_pc_o
     ,output          branch_d_request_o
     ,output [ 31:0]  branch_d_pc_o
+    ,output [  1:0]  branch_d_priv_o
     ,output [ 31:0]  writeback_value_o
 );
 
@@ -397,6 +398,7 @@ assign branch_is_jmp_o    = branch_jmp_q;
 
 assign branch_d_request_o = (branch_r && opcode_valid_i && branch_taken_r);
 assign branch_d_pc_o      = branch_target_r;
+assign branch_d_priv_o    = 2'b0; // don't care
 
 
 

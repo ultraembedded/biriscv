@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------
 //                         biRISC-V CPU
-//                            V0.5.0
+//                            V0.6.0
 //                     Ultra-Embedded.com
 //                     Copyright 2019-2020
 //
@@ -93,6 +93,7 @@ wire invalid_w =    valid_i &&
                     ((opcode_i & `INST_WFI_MASK) == `INST_WFI)                ||
                     ((opcode_i & `INST_FENCE_MASK) == `INST_FENCE)            ||
                     ((opcode_i & `INST_IFENCE_MASK) == `INST_IFENCE)          ||
+                    ((opcode_i & `INST_SFENCE_MASK) == `INST_SFENCE)          ||
                     (enable_muldiv_i && (opcode_i & `INST_MUL_MASK) == `INST_MUL)       ||
                     (enable_muldiv_i && (opcode_i & `INST_MULH_MASK) == `INST_MULH)     ||
                     (enable_muldiv_i && (opcode_i & `INST_MULHSU_MASK) == `INST_MULHSU) ||
@@ -213,6 +214,7 @@ assign csr_o =      ((opcode_i & `INST_ECALL_MASK) == `INST_ECALL)            ||
                     ((opcode_i & `INST_WFI_MASK) == `INST_WFI)                ||
                     ((opcode_i & `INST_FENCE_MASK) == `INST_FENCE)            ||
                     ((opcode_i & `INST_IFENCE_MASK) == `INST_IFENCE)          ||
+                    ((opcode_i & `INST_SFENCE_MASK) == `INST_SFENCE)          ||
                     invalid_w || fetch_fault_i;
 
 endmodule

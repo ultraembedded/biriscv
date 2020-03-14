@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------
 //                         biRISC-V CPU
-//                            V0.5.0
+//                            V0.6.0
 //                     Ultra-Embedded.com
 //                     Copyright 2019-2020
 //
@@ -30,6 +30,7 @@ module biriscv_frontend
 #(
      parameter SUPPORT_BRANCH_PREDICTION = 1
     ,parameter SUPPORT_MULDIV   = 1
+    ,parameter SUPPORT_MMU      = 1
     ,parameter EXTRA_DECODE_STAGE = 0
     ,parameter NUM_BTB_ENTRIES  = 32
     ,parameter NUM_BTB_ENTRIES_W = 5
@@ -52,11 +53,13 @@ module biriscv_frontend
     ,input           icache_valid_i
     ,input           icache_error_i
     ,input  [ 63:0]  icache_inst_i
+    ,input           icache_page_fault_i
     ,input           fetch0_accept_i
     ,input           fetch1_accept_i
     ,input           fetch_invalidate_i
     ,input           branch_request_i
     ,input  [ 31:0]  branch_pc_i
+    ,input  [  1:0]  branch_priv_i
     ,input           branch_info_request_i
     ,input           branch_info_is_taken_i
     ,input           branch_info_is_not_taken_i
@@ -71,6 +74,7 @@ module biriscv_frontend
     ,output          icache_flush_o
     ,output          icache_invalidate_o
     ,output [ 31:0]  icache_pc_o
+    ,output [  1:0]  icache_priv_o
     ,output          fetch0_valid_o
     ,output [ 31:0]  fetch0_instr_o
     ,output [ 31:0]  fetch0_pc_o
@@ -168,6 +172,7 @@ u_decode
     ,.fetch_out1_accept_i(fetch1_accept_i)
     ,.branch_request_i(branch_request_i)
     ,.branch_pc_i(branch_pc_i)
+    ,.branch_priv_i(branch_priv_i)
 
     // Outputs
     ,.fetch_in_accept_o(fetch_accept_w)
@@ -201,6 +206,9 @@ u_decode
 
 
 biriscv_fetch
+#(
+     .SUPPORT_MMU(SUPPORT_MMU)
+)
 u_fetch
 (
     // Inputs
@@ -211,9 +219,11 @@ u_fetch
     ,.icache_valid_i(icache_valid_i)
     ,.icache_error_i(icache_error_i)
     ,.icache_inst_i(icache_inst_i)
+    ,.icache_page_fault_i(icache_page_fault_i)
     ,.fetch_invalidate_i(fetch_invalidate_i)
     ,.branch_request_i(branch_request_i)
     ,.branch_pc_i(branch_pc_i)
+    ,.branch_priv_i(branch_priv_i)
     ,.next_pc_f_i(next_pc_f_w)
     ,.next_taken_f_i(next_taken_f_w)
 
@@ -228,6 +238,7 @@ u_fetch
     ,.icache_flush_o(icache_flush_o)
     ,.icache_invalidate_o(icache_invalidate_o)
     ,.icache_pc_o(icache_pc_o)
+    ,.icache_priv_o(icache_priv_o)
     ,.pc_f_o(fetch_pc_f_w)
     ,.pc_accept_o(fetch_pc_accept_w)
 );

@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------
 //                         biRISC-V CPU
-//                            V0.5.0
+//                            V0.6.0
 //                     Ultra-Embedded.com
 //                     Copyright 2019-2020
 //
@@ -52,6 +52,8 @@ module biriscv_lsu
     ,input           mem_ack_i
     ,input           mem_error_i
     ,input  [ 10:0]  mem_resp_tag_i
+    ,input           mem_load_fault_i
+    ,input           mem_store_fault_i
 
     // Outputs
     ,output [ 31:0]  mem_addr_o
@@ -400,9 +402,14 @@ wire fault_load_align_w     = mem_unaligned_e2_q & resp_load_w;
 wire fault_store_align_w    = mem_unaligned_e2_q & ~resp_load_w;
 wire fault_load_bus_w       = mem_error_i &&  resp_load_w;
 wire fault_store_bus_w      = mem_error_i && ~resp_load_w;
+wire fault_load_page_w      = mem_error_i && mem_load_fault_i;
+wire fault_store_page_w     = mem_error_i && mem_store_fault_i;
+
 
 assign writeback_exception_o         = fault_load_align_w  ? `EXCEPTION_MISALIGNED_LOAD:
                                        fault_store_align_w ? `EXCEPTION_MISALIGNED_STORE:
+                                       fault_load_page_w   ? `EXCEPTION_PAGE_FAULT_LOAD:
+                                       fault_store_page_w  ? `EXCEPTION_PAGE_FAULT_STORE:
                                        fault_load_bus_w    ? `EXCEPTION_FAULT_LOAD:
                                        fault_store_bus_w   ? `EXCEPTION_FAULT_STORE:
                                        `EXCEPTION_W'b0;
