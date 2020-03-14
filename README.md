@@ -13,6 +13,9 @@ Github: [http://github.com/ultraembedded/biriscv](http://github.com/ultraembedde
 * 2 x integer ALU (arithmetic, shifters and branch units).
 * 1 x load store unit, 1 x out-of-pipeline divider.
 * Issue and complete up to 2 independent instructions per cycle.
+* Supports user, supervisor and machine mode privilege levels.
+* Basic MMU support - capable of booting Linux with atomics (RV-A) SW emulation.
+* Implements base ISA spec [v2.1](docs/riscv_isa_spec.pdf) and privileged ISA spec [v1.11](docs/riscv_privileged_spec.pdf).
 * Verified using [Google's RISCV-DV](https://github.com/google/riscv-dv) random instruction sequences using cosimulation against [C++ ISA model](https://github.com/ultraembedded/exactstep).
 * Support for instruction / data cache, AXI bus interfaces or tightly coupled memories.
 * Configurable number of pipeline stages, result forwarding options, and branch prediction resources.
@@ -25,22 +28,27 @@ Github: [http://github.com/ultraembedded/biriscv](http://github.com/ultraembedde
   * RV32IMAFC
   * Dual issue in-order 8 stage pipeline
   * 4 ALU units (2 early, 2 late)
-  * -*Commercial core/$$*
+  * -*Commercial closed source core/$$*
 * [WD SweRV RISC-V Core EH1](https://github.com/chipsalliance/Cores-SweRV)
   * RV32IMC
   * Dual issue in-order 9 stage pipeline
   * 4 ALU units (2 early, 2 late)
   * -*System Verilog + auto signal hookup*
   * -*No data cache option*
+  * -*Not able to boot Linux*
 
 ## Project Aims
+* Boot Linux all the way to a functional userspace environment.
 * Achieve competitive performance for this class of in-order machine (i.e. aim for 80% of WD SweRV CoreMark score).
 * Reasonable PPA / FPGA resource friendly.
 * Fit easily onto cheap hobbyist FPGAs (e.g. Xilinx Artix 7) without using all LUT resources and synthesize > 50MHz.
 * Support various cache and TCM options.
 * Be constructed using readable, maintainable and documented IEEE 1364-2001 Verilog.
 * Simulate in open-source tools such as Verilator and Icarus Verilog.
-* *In later releases, add support for atomic extensions and MMU/supervisor mode to enable booting Linux.*
+* *In later releases, add support for atomic extensions.*
+
+*Booting Linux to userspace on Digilent arty Artix 7;*
+![Linux-Boot](docs/linux-boot.png)
 
 ## Prior Work
 Based on my previous work;
