@@ -441,10 +441,14 @@ begin
     reg         lsu_out_cacheable_r;
     always @ *
     begin
+/* verilator lint_off UNSIGNED */
+/* verilator lint_off CMPCONST */
         if (lsu_in_invalidate_i || lsu_in_writeback_i || lsu_in_flush_i)
             lsu_out_cacheable_r = 1'b1;
         else
             lsu_out_cacheable_r = (lsu_out_addr_w >= MEM_CACHE_ADDR_MIN && lsu_out_addr_w <= MEM_CACHE_ADDR_MAX);
+/* verilator lint_on CMPCONST */
+/* verilator lint_on UNSIGNED */
     end
 
     wire [10:0] lsu_out_req_tag_w    = lsu_in_req_tag_i;
