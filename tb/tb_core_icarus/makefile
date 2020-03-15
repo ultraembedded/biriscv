@@ -7,6 +7,10 @@ OBJCOPY ?= riscv32-unknown-elf-objcopy
 ifeq ($(shell which $(OBJCOPY)),)
   ${error $(OBJCOPY) missing from PATH}
 endif
+ifeq ($(shell which iverilog),)
+  ${error iverilog missing from PATH - Icarus Verilog required}
+endif
+
 
 ###############################################################################
 # Variables: Defaults
