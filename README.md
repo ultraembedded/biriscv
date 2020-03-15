@@ -65,6 +65,40 @@ git clone --recursive https://github.com/ultraembedded/biriscv.git
 
 ```
 
+#### Running Helloworld
+
+To run a simple test image on the core RTL using Icarus Verilog;
+
+```
+# Install Icarus Verilog (Debian / Ubuntu / Linux Mint)
+sudo apt-get install iverilog
+
+# [or] Install Icarus Verilog (Redhat / Centos)
+#sudo yum install iverilog
+
+# Run a simple test image (test.elf)
+cd tb/tb_core_icarus
+make
+```
+
+The expected output is;
+```
+Starting bench
+VCD info: dumpfile waveform.vcd opened for output.
+
+Test:
+1. Initialised data
+2. Multiply
+3. Divide
+4. Shift left
+5. Shift right
+6. Shift right arithmetic
+7. Signed comparision
+8. Word access
+9. Byte access
+10. Comparision
+```
+
 #### Configuration
 
 | Param Name                | Valid Range          | Description                                   |
