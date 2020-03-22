@@ -47,7 +47,7 @@ Github: [http://github.com/ultraembedded/biriscv](http://github.com/ultraembedde
 * Simulate in open-source tools such as Verilator and Icarus Verilog.
 * *In later releases, add support for atomic extensions.*
 
-*Booting Linux to userspace on Digilent arty Artix 7;*
+*Booting the stock Linux 5.0.0-rc8 kernel built for RV32IMA to userspace on a Digilent Arty Artix 7 with biRISC-V (with atomic instructions emulated in the bootloader);*
 ![Linux-Boot](docs/linux-boot.png)
 
 ## Prior Work
