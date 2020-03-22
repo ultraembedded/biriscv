@@ -23,6 +23,9 @@ Github: [http://github.com/ultraembedded/biriscv](http://github.com/ultraembedde
 * Coremark:  **4.1 CoreMark/MHz**
 * Dhrystone: **1.9 DMIPS/MHz** ('legal compile options' / 337 instructions per iteration)
 
+## Documentation
+* [Configuration](docs/configuration.md)
+
 ## Similar Cores
 * [SiFive E76](https://www.sifive.com/cores/e76)
   * RV32IMAFC
