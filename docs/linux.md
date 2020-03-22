@@ -11,7 +11,7 @@ This currently allows biRISC-V to successfully boot Linux to userspace.
 * Prebuilt Kernel images - [https://github.com/ultraembedded/riscv-linux-prebuilt](https://github.com/ultraembedded/riscv-linux-prebuilt)
 
 ### Required HW components
-* biRISC-V configured to run Linux (see [configuration guide](docs/configuration.md))
+* biRISC-V configured to run Linux (see [configuration guide](configuration.md))
 * 32MB+ SDRAM/DDR available @ 0x80000000
 * Xilinx UART-Lite accessible @ 0x92000000
 
@@ -24,4 +24,4 @@ make LINUX_DIR=/path/to/riscv-linux-prebuilt VMLINUX=/path/to/riscv-linux-prebui
 ### Example Output
 Running on a Digilent Arty Artix 7 (35T);
 
-![Linux-Boot](docs/linux-boot.png)
+![Linux-Boot](linux-boot.png)
