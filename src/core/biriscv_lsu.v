@@ -102,7 +102,7 @@ reg          mem_ls_q;
 //-----------------------------------------------------------------
 reg pending_lsu_e2_q;
 
-wire issue_lsu_e1_w    = (mem_rd_o || (|mem_wr_o)) && mem_accept_i;
+wire issue_lsu_e1_w    = (mem_rd_o || (|mem_wr_o) || mem_writeback_o || mem_invalidate_o || mem_flush_o) && mem_accept_i;
 wire complete_ok_e2_w  = mem_ack_i & ~mem_error_i;
 wire complete_err_e2_w = mem_ack_i & mem_error_i;
 
@@ -334,7 +334,7 @@ u_lsu_request
      .clk_i(clk_i)
     ,.rst_i(rst_i)
 
-    ,.push_i(((mem_rd_o || (|mem_wr_o)) && mem_accept_i) || (mem_unaligned_e1_q && ~delay_lsu_e2_w))
+    ,.push_i(((mem_rd_o || (|mem_wr_o) || mem_writeback_o || mem_invalidate_o || mem_flush_o) && mem_accept_i) || (mem_unaligned_e1_q && ~delay_lsu_e2_w))
     ,.data_in_i({mem_addr_q, mem_ls_q, mem_lh_q, mem_lb_q, mem_load_q})
     ,.accept_o()
 
