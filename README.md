@@ -23,6 +23,9 @@ Github: [http://github.com/ultraembedded/biriscv](http://github.com/ultraembedde
 * Coremark:  **4.1 CoreMark/MHz**
 * Dhrystone: **1.9 DMIPS/MHz** ('legal compile options' / 337 instructions per iteration)
 
+*A sequence showing execution of 2 instructions per cycle;*
+![Dual-Issue](docs/dual_issue.png)
+
 ## Documentation
 * [Configuration](docs/configuration.md)
 * [Booting Linux](docs/linux.md)
