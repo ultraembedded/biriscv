@@ -43,13 +43,13 @@ Github: [http://github.com/ultraembedded/biriscv](http://github.com/ultraembedde
   * -*Not able to boot Linux*
 
 ## Project Aims
-* Boot Linux all the way to a functional userspace environment.
-* Achieve competitive performance for this class of in-order machine (i.e. aim for 80% of WD SweRV CoreMark score).
-* Reasonable PPA / FPGA resource friendly.
-* Fit easily onto cheap hobbyist FPGAs (e.g. Xilinx Artix 7) without using all LUT resources and synthesize > 50MHz.
-* Support various cache and TCM options.
+* Boot Linux all the way to a functional userspace environment. :white_check_mark:
+* Achieve competitive performance for this class of in-order machine (i.e. aim for 80% of WD SweRV CoreMark score). :white_check_mark:
+* Reasonable PPA / FPGA resource friendly. :white_check_mark:
+* Fit easily onto cheap hobbyist FPGAs (e.g. Xilinx Artix 7) without using all LUT resources and synthesize > 50MHz. :white_check_mark:
+* Support various cache and TCM options. :white_check_mark:
 * Be constructed using readable, maintainable and documented IEEE 1364-2001 Verilog.
-* Simulate in open-source tools such as Verilator and Icarus Verilog.
+* Simulate in open-source tools such as Verilator and Icarus Verilog. :white_check_mark:
 * *In later releases, add support for atomic extensions.*
 
 *Booting the stock Linux 5.0.0-rc8 kernel built for RV32IMA to userspace on a Digilent Arty Artix 7 with biRISC-V (with atomic instructions emulated in the bootloader);*
