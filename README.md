@@ -33,23 +33,23 @@ Github: [http://github.com/ultraembedded/biriscv](http://github.com/ultraembedde
   * RV32IMAFC
   * Dual issue in-order 8 stage pipeline
   * 4 ALU units (2 early, 2 late)
-  * -*Commercial closed source core/$$*
+  * :heavy_minus_sign: *Commercial closed source core/$$*
 * [WD SweRV RISC-V Core EH1](https://github.com/chipsalliance/Cores-SweRV)
   * RV32IMC
   * Dual issue in-order 9 stage pipeline
   * 4 ALU units (2 early, 2 late)
-  * -*System Verilog + auto signal hookup*
-  * -*No data cache option*
-  * -*Not able to boot Linux*
+  * :heavy_minus_sign: *System Verilog + auto signal hookup*
+  * :heavy_minus_sign: *No data cache option*
+  * :heavy_minus_sign: *Not able to boot Linux*
 
 ## Project Aims
-* Boot Linux all the way to a functional userspace environment. :white_check_mark:
-* Achieve competitive performance for this class of in-order machine (i.e. aim for 80% of WD SweRV CoreMark score). :white_check_mark:
-* Reasonable PPA / FPGA resource friendly. :white_check_mark:
-* Fit easily onto cheap hobbyist FPGAs (e.g. Xilinx Artix 7) without using all LUT resources and synthesize > 50MHz. :white_check_mark:
-* Support various cache and TCM options. :white_check_mark:
-* Be constructed using readable, maintainable and documented IEEE 1364-2001 Verilog.
-* Simulate in open-source tools such as Verilator and Icarus Verilog. :white_check_mark:
+* Boot Linux all the way to a functional userspace environment. :heavy_check_mark:
+* Achieve competitive performance for this class of in-order machine (i.e. aim for 80% of WD SweRV CoreMark score). :heavy_check_mark:
+* Reasonable PPA / FPGA resource friendly. :heavy_check_mark:
+* Fit easily onto cheap hobbyist FPGAs (e.g. Xilinx Artix 7) without using all LUT resources and synthesize > 50MHz. :heavy_check_mark:
+* Support various cache and TCM options. :heavy_check_mark:
+* Be constructed using readable, maintainable and documented IEEE 1364-2001 Verilog. :heavy_check_mark:
+* Simulate in open-source tools such as Verilator and Icarus Verilog. :heavy_check_mark:
 * *In later releases, add support for atomic extensions.*
 
 *Booting the stock Linux 5.0.0-rc8 kernel built for RV32IMA to userspace on a Digilent Arty Artix 7 with biRISC-V (with atomic instructions emulated in the bootloader);*
