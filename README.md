@@ -37,14 +37,14 @@ Github: [http://github.com/ultraembedded/biriscv](http://github.com/ultraembedde
   * RV32IMAFC
   * Dual issue in-order 8 stage pipeline
   * 4 ALU units (2 early, 2 late)
-  * :heavy_minus_sign: *Commercial closed source core/$$*
+  * :heavy_multiplication_x: *Commercial closed source core/$$*
 * [WD SweRV RISC-V Core EH1](https://github.com/chipsalliance/Cores-SweRV)
   * RV32IMC
   * Dual issue in-order 9 stage pipeline
   * 4 ALU units (2 early, 2 late)
-  * :heavy_minus_sign: *System Verilog + auto signal hookup*
-  * :heavy_minus_sign: *No data cache option*
-  * :heavy_minus_sign: *Not able to boot Linux*
+  * :heavy_multiplication_x: *System Verilog + auto signal hookup*
+  * :heavy_multiplication_x: *No data cache option*
+  * :heavy_multiplication_x: *Not able to boot Linux*
 
 ## Project Aims
 * Boot Linux all the way to a functional userspace environment. :heavy_check_mark:
