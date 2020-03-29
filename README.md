@@ -27,6 +27,7 @@ Github: [http://github.com/ultraembedded/biriscv](http://github.com/ultraembedde
 * [Configuration](docs/configuration.md)
 * [Booting Linux](docs/linux.md)
 * [Integration](docs/integration.md)
+* [Custom Features](docs/custom.md)
 
 ## Similar Cores
 * [SiFive E76](https://www.sifive.com/cores/e76)
