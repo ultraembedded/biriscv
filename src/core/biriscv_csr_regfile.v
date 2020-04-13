@@ -147,12 +147,12 @@ reg csr_mip_upd_q;
 always @ (posedge clk_i or posedge rst_i)
 if (rst_i)
     csr_mip_upd_q <= 1'b0;
-else if (csr_ren_i && csr_raddr_i == `CSR_MIP)
+else if ((csr_ren_i && csr_raddr_i == `CSR_MIP) || (csr_ren_i && csr_raddr_i == `CSR_SIP))
     csr_mip_upd_q <= 1'b1;
-else if (csr_waddr_i == `CSR_MIP || (|exception_i))
+else if (csr_waddr_i == `CSR_MIP || csr_waddr_i == `CSR_SIP || (|exception_i))
     csr_mip_upd_q <= 1'b0;
 
-wire buffer_mip_w = (csr_ren_i && csr_raddr_i == `CSR_MIP) | csr_mip_upd_q;
+wire buffer_mip_w = (csr_ren_i && csr_raddr_i == `CSR_MIP) | (csr_ren_i && csr_raddr_i == `CSR_SIP) | csr_mip_upd_q;
 
 //-----------------------------------------------------------------
 // CSR Read Port
@@ -448,14 +448,20 @@ begin
     end
  
     // External interrupts
-    if (ext_intr_i)   csr_mip_next_r[`SR_IP_MEIP_R] = 1'b1;
-    if (timer_intr_i) csr_mip_next_r[`SR_IP_MTIP_R] = 1'b1;
+    // NOTE: If the machine level interrupts are delegated to supervisor, route the interrupts there instead..
+    if (ext_intr_i   &&  csr_mideleg_q[`SR_IP_MEIP_R]) csr_mip_next_r[`SR_IP_SEIP_R] = 1'b1;
+    if (ext_intr_i   && ~csr_mideleg_q[`SR_IP_MEIP_R]) csr_mip_next_r[`SR_IP_MEIP_R] = 1'b1;
+    if (timer_intr_i &&  csr_mideleg_q[`SR_IP_MTIP_R]) csr_mip_next_r[`SR_IP_STIP_R] = 1'b1;
+    if (timer_intr_i && ~csr_mideleg_q[`SR_IP_MTIP_R]) csr_mip_next_r[`SR_IP_MTIP_R] = 1'b1;
 
     // Optional: Internal timer compare interrupt
     if (SUPPORT_MTIMECMP && csr_mcycle_q == csr_mtimecmp_q)
     begin
-        csr_mip_next_r[`SR_IP_MTIP_R] = csr_mtime_ie_q;
-        csr_mtime_ie_r                = 1'b0;
+        if (csr_mideleg_q[`SR_IP_MTIP_R])
+            csr_mip_next_r[`SR_IP_STIP_R] = csr_mtime_ie_q;
+        else
+            csr_mip_next_r[`SR_IP_MTIP_R] = csr_mtime_ie_q;
+        csr_mtime_ie_r  = 1'b0;
     end
 
     csr_mip_r = csr_mip_r | csr_mip_next_r;
