@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------
 //                         biRISC-V CPU
-//                            V0.6.0
+//                            V0.7.0
 //                     Ultra-Embedded.com
 //                     Copyright 2019-2020
 //
@@ -162,6 +162,7 @@ u_csrfile
     ,.misa_i(misa_w)
 
     // Issue
+    ,.csr_ren_i(opcode_valid_i)
     ,.csr_raddr_i(opcode_opcode_i[31:20])
     ,.csr_rdata_o(csr_rdata_w)
 

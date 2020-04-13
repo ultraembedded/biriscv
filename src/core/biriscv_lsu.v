@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------
 //                         biRISC-V CPU
-//                            V0.6.0
+//                            V0.7.0
 //                     Ultra-Embedded.com
 //                     Copyright 2019-2020
 //
@@ -93,8 +93,8 @@ reg          mem_unaligned_e1_q;
 reg          mem_unaligned_e2_q;
 
 reg          mem_load_q;
-reg          mem_lb_q;
-reg          mem_lh_q;
+reg          mem_xb_q;
+reg          mem_xh_q;
 reg          mem_ls_q;
 
 //-----------------------------------------------------------------
@@ -148,6 +148,9 @@ wire store_inst_w = (((opcode_opcode_i & `INST_SB_MASK) == `INST_SB)  ||
 wire req_lb_w = ((opcode_opcode_i & `INST_LB_MASK) == `INST_LB) || ((opcode_opcode_i & `INST_LBU_MASK) == `INST_LBU);
 wire req_lh_w = ((opcode_opcode_i & `INST_LH_MASK) == `INST_LH) || ((opcode_opcode_i & `INST_LHU_MASK) == `INST_LHU);
 wire req_lw_w = ((opcode_opcode_i & `INST_LW_MASK) == `INST_LW) || ((opcode_opcode_i & `INST_LWU_MASK) == `INST_LWU);
+wire req_sb_w = ((opcode_opcode_i & `INST_LB_MASK) == `INST_SB);
+wire req_sh_w = ((opcode_opcode_i & `INST_LH_MASK) == `INST_SH);
+wire req_sw_w = ((opcode_opcode_i & `INST_LW_MASK) == `INST_SW);
 
 wire req_sw_lw_w = ((opcode_opcode_i & `INST_SW_MASK) == `INST_SW) || ((opcode_opcode_i & `INST_LW_MASK) == `INST_LW) || ((opcode_opcode_i & `INST_LWU_MASK) == `INST_LWU);
 wire req_sh_lh_w = ((opcode_opcode_i & `INST_SH_MASK) == `INST_SH) || ((opcode_opcode_i & `INST_LH_MASK) == `INST_LH) || ((opcode_opcode_i & `INST_LHU_MASK) == `INST_LHU);
@@ -252,8 +255,8 @@ begin
     mem_flush_q        <= 1'b0;
     mem_unaligned_e1_q <= 1'b0;
     mem_load_q         <= 1'b0;
-    mem_lb_q           <= 1'b0;
-    mem_lh_q           <= 1'b0;
+    mem_xb_q           <= 1'b0;
+    mem_xh_q           <= 1'b0;
     mem_ls_q           <= 1'b0;
 end
 // Memory access fault - squash next operation (exception coming...)
@@ -269,8 +272,8 @@ begin
     mem_flush_q        <= 1'b0;
     mem_unaligned_e1_q <= 1'b0;
     mem_load_q         <= 1'b0;
-    mem_lb_q           <= 1'b0;
-    mem_lh_q           <= 1'b0;
+    mem_xb_q           <= 1'b0;
+    mem_xh_q           <= 1'b0;
     mem_ls_q           <= 1'b0;
 end
 else if ((mem_rd_q || (|mem_wr_q) || mem_unaligned_e1_q) && delay_lsu_e2_w)
@@ -287,8 +290,8 @@ begin
     mem_flush_q        <= 1'b0;
     mem_unaligned_e1_q <= mem_unaligned_r;
     mem_load_q         <= opcode_valid_i && load_inst_w;
-    mem_lb_q           <= req_lb_w;
-    mem_lh_q           <= req_lh_w;
+    mem_xb_q           <= req_lb_w | req_sb_w;
+    mem_xh_q           <= req_lh_w | req_sh_w;
     mem_ls_q           <= load_signed_inst_w;
 
 /* verilator lint_off UNSIGNED */
@@ -335,7 +338,7 @@ u_lsu_request
     ,.rst_i(rst_i)
 
     ,.push_i(((mem_rd_o || (|mem_wr_o) || mem_writeback_o || mem_invalidate_o || mem_flush_o) && mem_accept_i) || (mem_unaligned_e1_q && ~delay_lsu_e2_w))
-    ,.data_in_i({mem_addr_q, mem_ls_q, mem_lh_q, mem_lb_q, mem_load_q})
+    ,.data_in_i({mem_addr_q, mem_ls_q, mem_xh_q, mem_xb_q, mem_load_q})
     ,.accept_o()
 
     ,.valid_o()

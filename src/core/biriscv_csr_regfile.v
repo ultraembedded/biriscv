@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------
 //                         biRISC-V CPU
-//                            V0.6.0
+//                            V0.7.0
 //                     Ultra-Embedded.com
 //                     Copyright 2019-2020
 //
@@ -48,6 +48,7 @@ module biriscv_csr_regfile
     ,input [31:0]    exception_addr_i
 
     // CSR read port
+    ,input           csr_ren_i
     ,input  [11:0]   csr_raddr_i
     ,output [31:0]   csr_rdata_o
 
@@ -140,6 +141,19 @@ else if (|irq_masked_r)
 
 assign interrupt_o = irq_masked_r;
 
+
+reg csr_mip_upd_q;
+
+always @ (posedge clk_i or posedge rst_i)
+if (rst_i)
+    csr_mip_upd_q <= 1'b0;
+else if (csr_ren_i && csr_raddr_i == `CSR_MIP)
+    csr_mip_upd_q <= 1'b1;
+else if (csr_waddr_i == `CSR_MIP || (|exception_i))
+    csr_mip_upd_q <= 1'b0;
+
+wire buffer_mip_w = (csr_ren_i && csr_raddr_i == `CSR_MIP) | csr_mip_upd_q;
+
 //-----------------------------------------------------------------
 // CSR Read Port
 //-----------------------------------------------------------------
@@ -204,6 +218,9 @@ reg         csr_mtime_ie_r;
 reg [31:0]  csr_medeleg_r;
 reg [31:0]  csr_mideleg_r;
 
+reg [31:0]  csr_mip_next_q;
+reg [31:0]  csr_mip_next_r;
+
 // CSR - Supervisor
 reg [31:0]  csr_sepc_r;
 reg [31:0]  csr_stvec_r;
@@ -218,6 +235,7 @@ wire exception_s_w  = SUPPORT_SUPER ? ((csr_mpriv_q <= `PRIV_SUPER) & is_excepti
 always @ *
 begin
     // CSR - Machine
+    csr_mip_next_r  = csr_mip_next_q;
     csr_mepc_r      = csr_mepc_q;
     csr_sr_r        = csr_sr_q;
     csr_mcause_r    = csr_mcause_q;
@@ -406,8 +424,6 @@ begin
         `CSR_MSTATUS:  csr_sr_r       = csr_wdata_i & `CSR_MSTATUS_MASK;
         `CSR_MIP:      csr_mip_r      = csr_wdata_i & `CSR_MIP_MASK;
         `CSR_MIE:      csr_mie_r      = csr_wdata_i & `CSR_MIE_MASK;
-        `CSR_MCYCLE,
-        `CSR_MTIME:    csr_mcycle_r   = csr_wdata_i;
         `CSR_MEDELEG:  csr_medeleg_r  = csr_wdata_i & `CSR_MEDELEG_MASK;
         `CSR_MIDELEG:  csr_mideleg_r  = csr_wdata_i & `CSR_MIDELEG_MASK;
         // Non-std behaviour
@@ -432,15 +448,17 @@ begin
     end
  
     // External interrupts
-    if (ext_intr_i)   csr_mip_r[`SR_IP_MEIP_R] = 1'b1;
-    if (timer_intr_i) csr_mip_r[`SR_IP_MTIP_R] = 1'b1;
+    if (ext_intr_i)   csr_mip_next_r[`SR_IP_MEIP_R] = 1'b1;
+    if (timer_intr_i) csr_mip_next_r[`SR_IP_MTIP_R] = 1'b1;
 
     // Optional: Internal timer compare interrupt
     if (SUPPORT_MTIMECMP && csr_mcycle_q == csr_mtimecmp_q)
     begin
-        csr_mip_r[`SR_IP_MTIP_R] = csr_mtime_ie_q;
-        csr_mtime_ie_r           = 1'b0;
+        csr_mip_next_r[`SR_IP_MTIP_R] = csr_mtime_ie_q;
+        csr_mtime_ie_r                = 1'b0;
     end
+
+    csr_mip_r = csr_mip_r | csr_mip_next_r;
 end
 
 //-----------------------------------------------------------------
@@ -479,6 +497,8 @@ begin
     csr_stval_q        <= 32'b0;
     csr_satp_q         <= 32'b0;
     csr_sscratch_q     <= 32'b0;
+
+    csr_mip_next_q     <= 32'b0;
 end
 else
 begin
@@ -505,6 +525,8 @@ begin
     csr_stval_q        <= SUPPORT_SUPER ? (csr_stval_r    & `CSR_STVAL_MASK)    : 32'b0;
     csr_satp_q         <= SUPPORT_SUPER ? (csr_satp_r     & `CSR_SATP_MASK)     : 32'b0;
     csr_sscratch_q     <= SUPPORT_SUPER ? (csr_sscratch_r & `CSR_SSCRATCH_MASK) : 32'b0;
+
+    csr_mip_next_q     <= buffer_mip_w ? csr_mip_next_r : 32'b0;
 
 `ifdef HAS_SIM_CTRL
     // CSR SIM_CTRL (or DSCRATCH)
