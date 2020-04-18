@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------
 //                         biRISC-V CPU
-//                            V0.7.0
+//                            V0.8.0
 //                     Ultra-Embedded.com
 //                     Copyright 2019-2020
 //
@@ -218,8 +218,6 @@ if (rst_i)
 else if (branch_csr_request_i)
     priv_x_q <= branch_csr_priv_i;
 
-wire fault_unaligned_inst_w = (pc_x_q[1:0] != 2'b00);
-
 //-------------------------------------------------------------
 // Issue Select
 //-------------------------------------------------------------
@@ -261,8 +259,8 @@ assign branch_priv_o             = branch_csr_request_i ? branch_csr_priv_i : pr
 //-------------------------------------------------------------
 reg        opcode_a_valid_r;
 reg        opcode_b_valid_r;
-reg [2:0]  opcode_a_fault_r;
-reg [2:0]  opcode_b_fault_r;
+reg [1:0]  opcode_a_fault_r;
+reg [1:0]  opcode_b_fault_r;
 reg [31:0] opcode_a_r;
 reg [31:0] opcode_b_r;
 reg [31:0] opcode_a_pc_r;
@@ -274,8 +272,8 @@ begin
     opcode_b_r       = 32'b0;
     opcode_a_valid_r = 1'b0;
     opcode_b_valid_r = 1'b0;
-    opcode_a_fault_r = 3'b0;
-    opcode_b_fault_r = 3'b0;
+    opcode_a_fault_r = 2'b0;
+    opcode_b_fault_r = 2'b0;
     opcode_a_pc_r    = 32'b0;
     opcode_b_pc_r    = 32'b0;
 
@@ -286,10 +284,10 @@ begin
         opcode_b_valid_r = fetch1_valid_i;
         opcode_a_r       = fetch0_instr_i;
         opcode_a_pc_r    = fetch0_pc_i;
-        opcode_a_fault_r = {fetch0_fault_page_i, fault_unaligned_inst_w, fetch0_fault_fetch_i};
+        opcode_a_fault_r = {fetch0_fault_page_i, fetch0_fault_fetch_i};
         opcode_b_r       = fetch1_instr_i;
         opcode_b_pc_r    = fetch1_pc_i;
-        opcode_b_fault_r = {fetch1_fault_page_i, fault_unaligned_inst_w, fetch1_fault_fetch_i};
+        opcode_b_fault_r = {fetch1_fault_page_i, fetch1_fault_fetch_i};
     end
     // Word 1 valid - mux to first issue slot
     // Note: Some instruction types can only issue in slot0, hence this muxing
@@ -299,25 +297,24 @@ begin
         opcode_b_valid_r = 1'b0;
         opcode_a_r       = fetch1_instr_i;
         opcode_a_pc_r    = fetch1_pc_i;
-        opcode_a_fault_r = {fetch1_fault_page_i, fault_unaligned_inst_w, fetch1_fault_fetch_i};
+        opcode_a_fault_r = {fetch1_fault_page_i, fetch1_fault_fetch_i};
         opcode_b_r       = 32'b0;
         opcode_b_pc_r    = 32'b0;
-        opcode_b_fault_r = 3'b0;
+        opcode_b_fault_r = 2'b0;
     end
 end
 
 wire [4:0] issue_a_ra_idx_w   = opcode_a_r[19:15];
 wire [4:0] issue_a_rb_idx_w   = opcode_a_r[24:20];
 wire [4:0] issue_a_rd_idx_w   = opcode_a_r[11:7];
-wire       issue_a_sb_alloc_w = (slot0_valid_r ? fetch0_instr_rd_valid_i : fetch1_instr_rd_valid_i) & ~fault_unaligned_inst_w;
-wire       issue_a_exec_w     = (slot0_valid_r ? fetch0_instr_exec_i     : fetch1_instr_exec_i)     & ~fault_unaligned_inst_w;
-wire       issue_a_lsu_w      = (slot0_valid_r ? fetch0_instr_lsu_i      : fetch1_instr_lsu_i)      & ~fault_unaligned_inst_w;
-wire       issue_a_branch_w   = (slot0_valid_r ? fetch0_instr_branch_i   : fetch1_instr_branch_i)   & ~fault_unaligned_inst_w;
-wire       issue_a_mul_w      = (slot0_valid_r ? fetch0_instr_mul_i      : fetch1_instr_mul_i)      & ~fault_unaligned_inst_w;
-wire       issue_a_div_w      = (slot0_valid_r ? fetch0_instr_div_i      : fetch1_instr_div_i)      & ~fault_unaligned_inst_w;
-wire       issue_a_csr_w      = (slot0_valid_r ? fetch0_instr_csr_i      : fetch1_instr_csr_i) | 
-                                (slot0_valid_r & fault_unaligned_inst_w);
-wire       issue_a_invalid_w  = (slot0_valid_r ? fetch0_instr_invalid_i  : fetch1_instr_invalid_i)  & ~fault_unaligned_inst_w;
+wire       issue_a_sb_alloc_w = (slot0_valid_r ? fetch0_instr_rd_valid_i : fetch1_instr_rd_valid_i);
+wire       issue_a_exec_w     = (slot0_valid_r ? fetch0_instr_exec_i     : fetch1_instr_exec_i);
+wire       issue_a_lsu_w      = (slot0_valid_r ? fetch0_instr_lsu_i      : fetch1_instr_lsu_i);
+wire       issue_a_branch_w   = (slot0_valid_r ? fetch0_instr_branch_i   : fetch1_instr_branch_i);
+wire       issue_a_mul_w      = (slot0_valid_r ? fetch0_instr_mul_i      : fetch1_instr_mul_i);
+wire       issue_a_div_w      = (slot0_valid_r ? fetch0_instr_div_i      : fetch1_instr_div_i);
+wire       issue_a_csr_w      = (slot0_valid_r ? fetch0_instr_csr_i      : fetch1_instr_csr_i);
+wire       issue_a_invalid_w  = (slot0_valid_r ? fetch0_instr_invalid_i  : fetch1_instr_invalid_i);
 
 
 wire [4:0] issue_b_ra_idx_w   = opcode_b_r[19:15];
@@ -369,8 +366,7 @@ wire [31:0] pipe0_rb_val_wb_w;
 wire [`EXCEPTION_W-1:0] pipe0_exception_wb_w;
 
 wire [`EXCEPTION_W-1:0] issue_a_fault_w = opcode_a_fault_r[0] ? `EXCEPTION_FAULT_FETCH:
-                                          opcode_a_fault_r[1] ? `EXCEPTION_MISALIGNED_FETCH:
-                                          opcode_a_fault_r[2] ? `EXCEPTION_PAGE_FAULT_INST: `EXCEPTION_W'b0;
+                                          opcode_a_fault_r[1] ? `EXCEPTION_PAGE_FAULT_INST: `EXCEPTION_W'b0;
 
 biriscv_pipe_ctrl
 #( 
@@ -394,13 +390,13 @@ u_pipe0_ctrl
     ,.issue_rd_valid_i(issue_a_sb_alloc_w)
     ,.issue_rd_i(issue_a_rd_idx_w)
     ,.issue_exception_i(issue_a_fault_w)
-    ,.take_interrupt_i(take_interrupt_i)
-
-    // Issue: (Verification only)
     ,.issue_pc_i(opcode0_pc_o)
     ,.issue_opcode_i(opcode0_opcode_o)
     ,.issue_operand_ra_i(opcode0_ra_operand_o)
     ,.issue_operand_rb_i(opcode0_rb_operand_o)
+    ,.issue_branch_taken_i(branch_d_exec0_request_i)
+    ,.issue_branch_target_i(branch_d_exec0_pc_i)
+    ,.take_interrupt_i(take_interrupt_i)
 
     // Execution stage 1: ALU result
     ,.alu_result_e1_i(writeback_exec0_value_i)
@@ -492,8 +488,7 @@ wire [31:0] pipe1_rb_val_wb_w;
 wire [`EXCEPTION_W-1:0] pipe1_exception_wb_w;
 
 wire [`EXCEPTION_W-1:0] issue_b_fault_w = opcode_b_fault_r[0] ? `EXCEPTION_FAULT_FETCH:
-                                          opcode_b_fault_r[1] ? `EXCEPTION_MISALIGNED_FETCH:
-                                          opcode_b_fault_r[2] ? `EXCEPTION_PAGE_FAULT_INST: `EXCEPTION_W'b0;
+                                          opcode_b_fault_r[1] ? `EXCEPTION_PAGE_FAULT_INST: `EXCEPTION_W'b0;
 
 biriscv_pipe_ctrl
 #( 
@@ -517,13 +512,13 @@ u_pipe1_ctrl
     ,.issue_rd_valid_i(issue_b_sb_alloc_w)
     ,.issue_rd_i(issue_b_rd_idx_w)
     ,.issue_exception_i(issue_b_fault_w)
-    ,.take_interrupt_i(take_interrupt_i)
-
-    // Issue: (Verification only)
     ,.issue_pc_i(opcode1_pc_o)
     ,.issue_opcode_i(opcode1_opcode_o)
     ,.issue_operand_ra_i(opcode1_ra_operand_o)
     ,.issue_operand_rb_i(opcode1_rb_operand_o)
+    ,.issue_branch_taken_i(branch_d_exec1_request_i)
+    ,.issue_branch_target_i(branch_d_exec1_pc_i)
+    ,.take_interrupt_i(take_interrupt_i)
 
     // Execution stage 1: ALU, CSR result
     ,.alu_result_e1_i(writeback_exec1_value_i)
