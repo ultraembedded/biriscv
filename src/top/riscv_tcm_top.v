@@ -22,15 +22,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //-----------------------------------------------------------------
-
+//History
+//-----------------------------------------------------------------
+//2020/9/10 Altus: Change _i_ interface to Master, _t_ interafce to Slave
+//2020/9/10 Altus: Expand AXI lite to AXI
+//
+//
 module riscv_tcm_top
 //-----------------------------------------------------------------
 // Params
 //-----------------------------------------------------------------
 #(
-     parameter BOOT_VECTOR      = 32'h00000000
+     parameter BOOT_VECTOR      = 32'h0000_0000
     ,parameter CORE_ID          = 0
-    ,parameter TCM_MEM_BASE     = 32'h00000000
+    ,parameter TCM_MEM_BASE     = 32'h0000_0000
+    ,parameter TCM_ROM_SIZE     = 16'h4000       //Altus: Add ROM
+    ,parameter TCM_RAM_SIZE     = 16'hC000       //Altus: Add ROM, Set TCM size
     ,parameter SUPPORT_BRANCH_PREDICTION = 1
     ,parameter SUPPORT_MULDIV   = 1
     ,parameter SUPPORT_SUPER    = 0
@@ -56,57 +63,104 @@ module riscv_tcm_top
 // Ports
 //-----------------------------------------------------------------
 (
-    // Inputs
-     input           clk_i
-    ,input           rst_i
-    ,input           rst_cpu_i
-    ,input           axi_i_awready_i
-    ,input           axi_i_wready_i
-    ,input           axi_i_bvalid_i
-    ,input  [  1:0]  axi_i_bresp_i
-    ,input           axi_i_arready_i
-    ,input           axi_i_rvalid_i
-    ,input  [ 31:0]  axi_i_rdata_i
-    ,input  [  1:0]  axi_i_rresp_i
-    ,input           axi_t_awvalid_i
-    ,input  [ 31:0]  axi_t_awaddr_i
-    ,input  [  3:0]  axi_t_awid_i
-    ,input  [  7:0]  axi_t_awlen_i
-    ,input  [  1:0]  axi_t_awburst_i
-    ,input           axi_t_wvalid_i
-    ,input  [ 31:0]  axi_t_wdata_i
-    ,input  [  3:0]  axi_t_wstrb_i
-    ,input           axi_t_wlast_i
-    ,input           axi_t_bready_i
-    ,input           axi_t_arvalid_i
-    ,input  [ 31:0]  axi_t_araddr_i
-    ,input  [  3:0]  axi_t_arid_i
-    ,input  [  7:0]  axi_t_arlen_i
-    ,input  [  1:0]  axi_t_arburst_i
-    ,input           axi_t_rready_i
-    ,input  [ 31:0]  intr_i
+    // Clock, Reset, Interrupts
+     input           clk
+    ,input           rst
+    ,input           rst_cpu
+    ,input  [ 31:0]  intr
 
-    // Outputs
-    ,output          axi_i_awvalid_o
-    ,output [ 31:0]  axi_i_awaddr_o
-    ,output          axi_i_wvalid_o
-    ,output [ 31:0]  axi_i_wdata_o
-    ,output [  3:0]  axi_i_wstrb_o
-    ,output          axi_i_bready_o
-    ,output          axi_i_arvalid_o
-    ,output [ 31:0]  axi_i_araddr_o
-    ,output          axi_i_rready_o
-    ,output          axi_t_awready_o
-    ,output          axi_t_wready_o
-    ,output          axi_t_bvalid_o
-    ,output [  1:0]  axi_t_bresp_o
-    ,output [  3:0]  axi_t_bid_o
-    ,output          axi_t_arready_o
-    ,output          axi_t_rvalid_o
-    ,output [ 31:0]  axi_t_rdata_o
-    ,output [  1:0]  axi_t_rresp_o
-    ,output [  3:0]  axi_t_rid_o
-    ,output          axi_t_rlast_o
+    // AXI Master
+    ,output [ 3:0]   riscv_mst_awid     //Altus expand to AXI
+    ,output [ 31:0]  riscv_mst_awaddr
+    ,output [ 7:0]   riscv_mst_awlen    //Altus expand to AXI
+    ,output [ 2:0]   riscv_mst_awsize   //Altus expand to AXI
+    ,output [ 1:0]   riscv_mst_awburst  //Altus expand to AXI
+    ,output [ 3:0]   riscv_mst_awcache  //Altus expand to AXI
+    ,output [ 2:0]   riscv_mst_awprot   //Altus expand to AXI
+    ,output [ 3:0]   riscv_mst_awqos    //Altus expand to AXI
+    ,output [ 3:0]   riscv_mst_awregion //Altus expand to AXI
+    //,output [ 5:0]   riscv_mst_awatop   //Altus expand to AXI - not used
+    //,output          riscv_mst_awuser   //Altus expand to AXI - not used
+    ,output          riscv_mst_awvalid
+    ,input           riscv_mst_awready
+
+    ,output [ 31:0]  riscv_mst_wdata
+    ,output [  3:0]  riscv_mst_wstrb
+    ,output          riscv_mst_wlast   //Altus expand to AXI
+    //,output          riscv_mst_wuser   //Altus expand to AXI - not used
+    ,output          riscv_mst_wvalid
+    ,input           riscv_mst_wready
+
+    ,input  [  1:0]  riscv_mst_bresp
+    ,input           riscv_mst_bvalid
+    ,output          riscv_mst_bready
+
+    ,output [ 3:0]   riscv_mst_arid     //Altus expand to AXI
+    ,output [ 31:0]  riscv_mst_araddr
+    ,output [ 7:0]   riscv_mst_arlen    //Altus expand to AXI
+    ,output [ 2:0]   riscv_mst_arsize   //Altus expand to AXI
+    ,output [ 1:0]   riscv_mst_arburst  //Altus expand to AXI
+    ,output          riscv_mst_arlock   //Altus expand to AXI
+    ,output [ 3:0]   riscv_mst_arcache  //Altus expand to AXI
+    ,output [ 2:0]   riscv_mst_arprot   //Altus expand to AXI
+    ,output [ 3:0]   riscv_mst_arqos    //Altus expand to AXI
+    ,output [ 3:0]   riscv_mst_arregion //Altus expand to AXI
+    //,output          riscv_mst_aruser   //Altus expand to AXI - not used
+    ,output          riscv_mst_arvalid
+    ,input           riscv_mst_arready
+    
+    ,input  [ 31:0]  riscv_mst_rdata
+    ,input  [  1:0]  riscv_mst_rresp
+    ,input           riscv_mst_rvalid
+    ,output          riscv_mst_rready
+       
+    // AXI Slave
+    ,input  [  3:0]  riscv_slv_awid
+    ,input  [ 31:0]  riscv_slv_awaddr
+    ,input  [  7:0]  riscv_slv_awlen
+    ,input  [  2:0]  riscv_slv_awsize  //Altus expand to AXI
+    ,input  [  1:0]  riscv_slv_awburst
+    ,input  [  3:0]  riscv_slv_awcache  //Altus expand to AXI
+    ,input  [  2:0]  riscv_slv_awprot   //Altus expand to AXI
+    ,input  [  3:0]  riscv_slv_awqos    //Altus expand to AXI
+    ,input  [  3:0]  riscv_slv_awregion //Altus expand to AXI
+    //,input  [  5:0]  riscv_slv_awatop   //Altus expand to AXI - not used
+    //,input           riscv_slv_awuser   //Altus expand to AXI - not used
+    ,input           riscv_slv_awvalid
+    ,output          riscv_slv_awready
+    
+    ,input  [ 31:0]  riscv_slv_wdata
+    ,input  [  3:0]  riscv_slv_wstrb
+    ,input           riscv_slv_wlast
+    //,input           riscv_slv_wuser   //Altus expand to AXI - not used
+    ,input           riscv_slv_wvalid
+    ,output          riscv_slv_wready
+
+    ,output [  1:0]  riscv_slv_bresp
+    ,output          riscv_slv_bvalid
+    ,input           riscv_slv_bready
+    ,output [  3:0]  riscv_slv_bid     //Altus: Is it used?
+ 
+    ,input  [  3:0]  riscv_slv_arid
+    ,input  [ 31:0]  riscv_slv_araddr
+    ,input  [  7:0]  riscv_slv_arlen
+    ,input  [  2:0]  riscv_slv_arsize   //Altus expand to AXI
+    ,input  [  1:0]  riscv_slv_arburst
+    ,input           riscv_slv_arlock   //Altus expand to AXI
+    ,input  [  3:0]  riscv_slv_arcache  //Altus expand to AXI
+    ,input  [  2:0]  riscv_slv_arprot   //Altus expand to AXI
+    ,input  [  3:0]  riscv_slv_arqos    //Altus expand to AXI
+    ,input  [  3:0]  riscv_slv_arregion //Altus expand to AXI
+    //,input           riscv_slv_aruser   //Altus expand to AXI - not used
+    ,input           riscv_slv_arvalid
+    ,output          riscv_slv_arready
+    
+    ,output [ 31:0]  riscv_slv_rdata
+    ,output [  1:0]  riscv_slv_rresp
+    ,output          riscv_slv_rvalid
+    ,input           riscv_slv_rready
+    ,output [  3:0]  riscv_slv_rid      //Altus: Is it used?
+    ,output          riscv_slv_rlast    //Altus: Is it used?
 );
 
 wire  [ 31:0]  ifetch_pc_w;
@@ -162,6 +216,29 @@ wire           dport_axi_flush_w;
 wire           dport_tcm_error_w;
 wire           dport_accept_w;
 
+//Altus expand to AXI - _i_ I/F
+assign   riscv_mst_awid     =4'b1000;//Altus expand to AXI
+assign   riscv_mst_awlen    ='b0;//Altus expand to AXI
+assign   riscv_mst_awsize   ='b0;//Altus expand to AXI
+assign   riscv_mst_awburst  ='b0;//Altus expand to AXI
+assign   riscv_mst_awcache  ='b0;//Altus expand to AXI
+assign   riscv_mst_awprot   ='b0;//Altus expand to AXI
+assign   riscv_mst_awqos    ='b0;//Altus expand to AXI
+assign   riscv_mst_awregion ='b0;//Altus expand to AXI
+//assign   riscv_mst_awatop   ='b0;//Altus expand to AXI - not used
+//assign   riscv_mst_awuser   ='b0;//Altus expand to AXI - not used
+assign   riscv_mst_wlast    ='b1;//Altus expand to AXI
+//assign   riscv_mst_wuser    ='b0;//Altus expand to AXI - not used
+assign   riscv_mst_arid     =4'b1001;//Altus expand to AXI
+assign   riscv_mst_arlen    ='b0;//Altus expand to AXI
+assign   riscv_mst_arsize   ='b0;//Altus expand to AXI
+assign   riscv_mst_arburst  ='b0;//Altus expand to AXI
+assign   riscv_mst_arlock   ='b0;//Altus expand to AXI
+assign   riscv_mst_arcache  ='b0;//Altus expand to AXI
+assign   riscv_mst_arprot   ='b0;//Altus expand to AXI
+assign   riscv_mst_arqos    ='b0;//Altus expand to AXI
+assign   riscv_mst_arregion ='b0;//Altus expand to AXI
+//assign   riscv_mst_aruser   ='b0;//Altus expand to AXI - not used
 
 riscv_core
 #(
@@ -189,8 +266,8 @@ riscv_core
 u_core
 (
     // Inputs
-     .clk_i(clk_i)
-    ,.rst_i(rst_cpu_i)
+     .clk_i(clk)
+    ,.rst_i(rst_cpu)
     ,.mem_d_data_rd_i(dport_data_rd_w)
     ,.mem_d_accept_i(dport_accept_w)
     ,.mem_d_ack_i(dport_ack_w)
@@ -200,7 +277,7 @@ u_core
     ,.mem_i_valid_i(ifetch_valid_w)
     ,.mem_i_error_i(ifetch_error_w)
     ,.mem_i_inst_i(ifetch_inst_w)
-    ,.intr_i(|intr_i)
+    ,.intr_i(|intr)
     ,.reset_vector_i(boot_vector_w)
     ,.cpu_id_i(cpu_id_w)
 
@@ -223,13 +300,15 @@ u_core
 
 dport_mux
 #(
-     .TCM_MEM_BASE(TCM_MEM_BASE)
+     .TCM_MEM_BASE(TCM_MEM_BASE), 
+     .TCM_RAM_SIZE(TCM_RAM_SIZE),
+     .TCM_ROM_SIZE(TCM_ROM_SIZE)
 )
 u_dmux
 (
     // Inputs
-     .clk_i(clk_i)
-    ,.rst_i(rst_i)
+     .clk_i(clk)
+    ,.rst_i(rst)
     ,.mem_addr_i(dport_addr_w)
     ,.mem_data_wr_i(dport_data_wr_w)
     ,.mem_rd_i(dport_rd_w)
@@ -278,11 +357,15 @@ u_dmux
 
 
 tcm_mem
+#(
+     .TCM_RAM_SIZE(TCM_RAM_SIZE),
+     .TCM_ROM_SIZE(TCM_ROM_SIZE)
+)
 u_tcm
 (
     // Inputs
-     .clk_i(clk_i)
-    ,.rst_i(rst_i)
+     .clk_i(clk)
+    ,.rst_i(rst)
     ,.mem_i_rd_i(ifetch_rd_w)
     ,.mem_i_flush_i(ifetch_flush_w)
     ,.mem_i_invalidate_i(ifetch_invalidate_w)
@@ -296,22 +379,22 @@ u_tcm
     ,.mem_d_invalidate_i(dport_tcm_invalidate_w)
     ,.mem_d_writeback_i(dport_tcm_writeback_w)
     ,.mem_d_flush_i(dport_tcm_flush_w)
-    ,.axi_awvalid_i(axi_t_awvalid_i)
-    ,.axi_awaddr_i(axi_t_awaddr_i)
-    ,.axi_awid_i(axi_t_awid_i)
-    ,.axi_awlen_i(axi_t_awlen_i)
-    ,.axi_awburst_i(axi_t_awburst_i)
-    ,.axi_wvalid_i(axi_t_wvalid_i)
-    ,.axi_wdata_i(axi_t_wdata_i)
-    ,.axi_wstrb_i(axi_t_wstrb_i)
-    ,.axi_wlast_i(axi_t_wlast_i)
-    ,.axi_bready_i(axi_t_bready_i)
-    ,.axi_arvalid_i(axi_t_arvalid_i)
-    ,.axi_araddr_i(axi_t_araddr_i)
-    ,.axi_arid_i(axi_t_arid_i)
-    ,.axi_arlen_i(axi_t_arlen_i)
-    ,.axi_arburst_i(axi_t_arburst_i)
-    ,.axi_rready_i(axi_t_rready_i)
+    ,.axi_awvalid_i(riscv_slv_awvalid)
+    ,.axi_awaddr_i(riscv_slv_awaddr)
+    ,.axi_awid_i(riscv_slv_awid)
+    ,.axi_awlen_i(riscv_slv_awlen)
+    ,.axi_awburst_i(riscv_slv_awburst)
+    ,.axi_wvalid_i(riscv_slv_wvalid)
+    ,.axi_wdata_i(riscv_slv_wdata)
+    ,.axi_wstrb_i(riscv_slv_wstrb)
+    ,.axi_wlast_i(riscv_slv_wlast)
+    ,.axi_bready_i(riscv_slv_bready)
+    ,.axi_arvalid_i(riscv_slv_arvalid)
+    ,.axi_araddr_i(riscv_slv_araddr)
+    ,.axi_arid_i(riscv_slv_arid)
+    ,.axi_arlen_i(riscv_slv_arlen)
+    ,.axi_arburst_i(riscv_slv_arburst)
+    ,.axi_rready_i(riscv_slv_rready)
 
     // Outputs
     ,.mem_i_accept_o(ifetch_accept_w)
@@ -323,17 +406,17 @@ u_tcm
     ,.mem_d_ack_o(dport_tcm_ack_w)
     ,.mem_d_error_o(dport_tcm_error_w)
     ,.mem_d_resp_tag_o(dport_tcm_resp_tag_w)
-    ,.axi_awready_o(axi_t_awready_o)
-    ,.axi_wready_o(axi_t_wready_o)
-    ,.axi_bvalid_o(axi_t_bvalid_o)
-    ,.axi_bresp_o(axi_t_bresp_o)
-    ,.axi_bid_o(axi_t_bid_o)
-    ,.axi_arready_o(axi_t_arready_o)
-    ,.axi_rvalid_o(axi_t_rvalid_o)
-    ,.axi_rdata_o(axi_t_rdata_o)
-    ,.axi_rresp_o(axi_t_rresp_o)
-    ,.axi_rid_o(axi_t_rid_o)
-    ,.axi_rlast_o(axi_t_rlast_o)
+    ,.axi_awready_o(riscv_slv_awready)
+    ,.axi_wready_o(riscv_slv_wready)
+    ,.axi_bvalid_o(riscv_slv_bvalid)
+    ,.axi_bresp_o(riscv_slv_bresp)
+    ,.axi_bid_o(riscv_slv_bid)
+    ,.axi_arready_o(riscv_slv_arready)
+    ,.axi_rvalid_o(riscv_slv_rvalid)
+    ,.axi_rdata_o(riscv_slv_rdata)
+    ,.axi_rresp_o(riscv_slv_rresp)
+    ,.axi_rid_o(riscv_slv_rid)
+    ,.axi_rlast_o(riscv_slv_rlast)
 );
 
 
@@ -341,25 +424,25 @@ dport_axi
 u_axi
 (
     // Inputs
-     .clk_i(clk_i)
-    ,.rst_i(rst_i)
+     .clk_i(clk)
+    ,.rst_i(rst)
     ,.mem_addr_i(dport_axi_addr_w)
     ,.mem_data_wr_i(dport_axi_data_wr_w)
     ,.mem_rd_i(dport_axi_rd_w)
     ,.mem_wr_i(dport_axi_wr_w)
     ,.mem_cacheable_i(dport_axi_cacheable_w)
     ,.mem_req_tag_i(dport_axi_req_tag_w)
-    ,.mem_invalidate_i(dport_axi_invalidate_w)
+    ,.mem_invalidate_i(dport_riscv_mstnvalidate_w)
     ,.mem_writeback_i(dport_axi_writeback_w)
     ,.mem_flush_i(dport_axi_flush_w)
-    ,.axi_awready_i(axi_i_awready_i)
-    ,.axi_wready_i(axi_i_wready_i)
-    ,.axi_bvalid_i(axi_i_bvalid_i)
-    ,.axi_bresp_i(axi_i_bresp_i)
-    ,.axi_arready_i(axi_i_arready_i)
-    ,.axi_rvalid_i(axi_i_rvalid_i)
-    ,.axi_rdata_i(axi_i_rdata_i)
-    ,.axi_rresp_i(axi_i_rresp_i)
+    ,.axi_awready_i(riscv_mst_awready)
+    ,.axi_wready_i(riscv_mst_wready)
+    ,.axi_bvalid_i(riscv_mst_bvalid)
+    ,.axi_bresp_i(riscv_mst_bresp)
+    ,.axi_arready_i(riscv_mst_arready)
+    ,.axi_rvalid_i(riscv_mst_rvalid)
+    ,.axi_rdata_i(riscv_mst_rdata)
+    ,.axi_rresp_i(riscv_mst_rresp)
 
     // Outputs
     ,.mem_data_rd_o(dport_axi_data_rd_w)
@@ -367,15 +450,15 @@ u_axi
     ,.mem_ack_o(dport_axi_ack_w)
     ,.mem_error_o(dport_axi_error_w)
     ,.mem_resp_tag_o(dport_axi_resp_tag_w)
-    ,.axi_awvalid_o(axi_i_awvalid_o)
-    ,.axi_awaddr_o(axi_i_awaddr_o)
-    ,.axi_wvalid_o(axi_i_wvalid_o)
-    ,.axi_wdata_o(axi_i_wdata_o)
-    ,.axi_wstrb_o(axi_i_wstrb_o)
-    ,.axi_bready_o(axi_i_bready_o)
-    ,.axi_arvalid_o(axi_i_arvalid_o)
-    ,.axi_araddr_o(axi_i_araddr_o)
-    ,.axi_rready_o(axi_i_rready_o)
+    ,.axi_awvalid_o(riscv_mst_awvalid)
+    ,.axi_awaddr_o(riscv_mst_awaddr)
+    ,.axi_wvalid_o(riscv_mst_wvalid)
+    ,.axi_wdata_o(riscv_mst_wdata)
+    ,.axi_wstrb_o(riscv_mst_wstrb)
+    ,.axi_bready_o(riscv_mst_bready)
+    ,.axi_arvalid_o(riscv_mst_arvalid)
+    ,.axi_araddr_o(riscv_mst_araddr)
+    ,.axi_rready_o(riscv_mst_rready)
 );
 
 

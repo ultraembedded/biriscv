@@ -23,7 +23,10 @@
 // limitations under the License.
 //-----------------------------------------------------------------
 
-module tcm_mem
+module tcm_mem #(
+     parameter TCM_ROM_SIZE         = 'd16384,
+     parameter TCM_RAM_SIZE         = 'd49152
+)
 (
     // Inputs
      input           clk_i
@@ -151,8 +154,13 @@ wire [12:0] muxed_addr_w = ext_accept_w ? ext_addr_w[15:3] : mem_d_addr_i[15:3];
 wire [31:0] muxed_data_w = ext_accept_w ? ext_write_data_w : mem_d_data_wr_i;
 wire [3:0]  muxed_wr_w   = ext_accept_w ? ext_wr_w         : mem_d_wr_i;
 wire [63:0] data_r_w;
-
-tcm_mem_ram
+wire [63:0] data_r_w_ram;
+wire [63:0] data_r_rom;
+wire [63:0] mem_i_inst_ram;
+wire [63:0] mem_i_inst_rom;
+wire access_ram = muxed_addr_w>=TCM_ROM_SIZE/8;
+tcm_mem_ram #(
+     .RAM_SIZE(TCM_RAM_SIZE))
 u_ram
 (
     // Instruction fetch
@@ -165,14 +173,37 @@ u_ram
     // External access / Data access
     ,.clk1_i(clk_i)
     ,.rst1_i(rst_i)
-    ,.addr1_i(muxed_addr_w)
-    ,.data1_i(muxed_hi_w ? {muxed_data_w, 32'b0} : {32'b0, muxed_data_w})
-    ,.wr1_i(muxed_hi_w ? {muxed_wr_w, 4'b0} : {4'b0, muxed_wr_w})
+    ,.addr1_i((access_ram) ? {muxed_addr_w- TCM_ROM_SIZE/8}                               : 'b0)//Altus: Disable write when accessing ROM, adjust address
+    ,.data1_i((access_ram) ? (muxed_hi_w ? {muxed_data_w, 32'b0} : {32'b0, muxed_data_w}) : 'b0)//Altus: Disable write when accessing ROM
+    ,.wr1_i  ((access_ram) ? (muxed_hi_w ? {muxed_wr_w,    4'b0} : {4'b0, muxed_wr_w   }) : 'b0)//Altus: Disable write when accessing ROM
 
     // Outputs
-    ,.data0_o(mem_i_inst_o)
-    ,.data1_o(data_r_w)
+    ,.data0_o(mem_i_inst_ram)
+    ,.data1_o(data_r_w_ram)
 );
+
+tcm_mem_rom #(
+     .ROM_SIZE(TCM_ROM_SIZE)
+)
+u_rom
+(
+    // Instruction fetch
+     .clk0_i(clk_i)
+    ,.addr0_i(mem_i_pc_i[15:3])
+
+    // External access / Data access
+    ,.clk1_i(clk_i)
+    ,.addr1_i(muxed_addr_w)
+
+    // Outputs
+    ,.data0_o(mem_i_inst_rom)
+    ,.data1_o(data_r_rom)
+);
+
+assign mem_i_inst_o = (mem_i_pc_i[15:3]>=TCM_ROM_SIZE/8) ? mem_i_inst_ram : mem_i_inst_rom;//Altus: Select data source RAM/ROM
+assign data_r_w     = (muxed_addr_w    >=TCM_ROM_SIZE/8) ? data_r_w_ram   : data_r_rom    ;//Altus: Select data source RAM/ROM
+
+
 
 reg muxed_hi_q;
 
@@ -255,17 +286,33 @@ assign ext_ack_w            = ext_ack_q;
 function write; /*verilator public*/
     input [31:0] addr;
     input [7:0]  data;
+    reg  [31:0] addr_int;
 begin
-    case (addr[2:0])
-    3'd0: u_ram.ram[addr/8][7:0]   = data;
-    3'd1: u_ram.ram[addr/8][15:8]  = data;
-    3'd2: u_ram.ram[addr/8][23:16] = data;
-    3'd3: u_ram.ram[addr/8][31:24] = data;
-    3'd4: u_ram.ram[addr/8][39:32] = data;
-    3'd5: u_ram.ram[addr/8][47:40] = data;
-    3'd6: u_ram.ram[addr/8][55:48] = data;
-    3'd7: u_ram.ram[addr/8][63:56] = data;
-    endcase
+    if(addr>=TCM_ROM_SIZE) begin
+    	addr_int=addr-TCM_ROM_SIZE;
+   	case (addr_int[2:0])
+    	3'd0: u_ram.ram[addr_int/8][7:0]  = data;
+    	3'd1: u_ram.ram[addr_int/8][15:8]  = data;
+    	3'd2: u_ram.ram[addr_int/8][23:16] = data;
+    	3'd3: u_ram.ram[addr_int/8][31:24] = data;
+    	3'd4: u_ram.ram[addr_int/8][39:32] = data;
+    	3'd5: u_ram.ram[addr_int/8][47:40] = data;
+    	3'd6: u_ram.ram[addr_int/8][55:48] = data;
+    	3'd7: u_ram.ram[addr_int/8][63:56] = data;
+    	endcase
+    end
+    else
+	case (addr[2:0])
+    	3'd0: u_rom.rom[addr/8][7:0]   = data;
+    	3'd1: u_rom.rom[addr/8][15:8]  = data;
+    	3'd2: u_rom.rom[addr/8][23:16] = data;
+    	3'd3: u_rom.rom[addr/8][31:24] = data;
+    	3'd4: u_rom.rom[addr/8][39:32] = data;
+    	3'd5: u_rom.rom[addr/8][47:40] = data;
+    	3'd6: u_rom.rom[addr/8][55:48] = data;
+    	3'd7: u_rom.rom[addr/8][63:56] = data;
+    	endcase
+
 end
 endfunction
 //-------------------------------------------------------------
@@ -273,17 +320,32 @@ endfunction
 //-------------------------------------------------------------
 function [7:0] read; /*verilator public*/
     input [31:0] addr;
+    reg  [31:0] addr_int;
 begin
-    case (addr[2:0])
-    3'd0: read = u_ram.ram[addr/8][7:0];
-    3'd1: read = u_ram.ram[addr/8][15:8];
-    3'd2: read = u_ram.ram[addr/8][23:16];
-    3'd3: read = u_ram.ram[addr/8][31:24];
-    3'd4: read = u_ram.ram[addr/8][39:32];
-    3'd5: read = u_ram.ram[addr/8][47:40];
-    3'd6: read = u_ram.ram[addr/8][55:48];
-    3'd7: read = u_ram.ram[addr/8][63:56];
-    endcase
+    if(addr>=TCM_ROM_SIZE) begin
+    	addr_int=addr-TCM_ROM_SIZE;
+    	case (addr_int[2:0])
+    	3'd0: read = u_ram.ram[addr_int/8][7:0];
+    	3'd1: read = u_ram.ram[addr_int/8][15:8];
+    	3'd2: read = u_ram.ram[addr_int/8][23:16];
+    	3'd3: read = u_ram.ram[addr_int/8][31:24];
+    	3'd4: read = u_ram.ram[addr_int/8][39:32];
+    	3'd5: read = u_ram.ram[addr_int/8][47:40];
+    	3'd6: read = u_ram.ram[addr_int/8][55:48];
+    	3'd7: read = u_ram.ram[addr_int/8][63:56];
+    	endcase
+     end 
+     else
+	case (addr[2:0])
+    	3'd0: read = u_rom.rom[addr/8][7:0];
+    	3'd1: read = u_rom.rom[addr/8][15:8];
+    	3'd2: read = u_rom.rom[addr/8][23:16];
+    	3'd3: read = u_rom.rom[addr/8][31:24];
+    	3'd4: read = u_rom.rom[addr/8][39:32];
+    	3'd5: read = u_rom.rom[addr/8][47:40];
+    	3'd6: read = u_rom.rom[addr/8][55:48];
+    	3'd7: read = u_rom.rom[addr/8][63:56];
+    	endcase
 end
 endfunction
 `endif
