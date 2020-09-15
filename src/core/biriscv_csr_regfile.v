@@ -426,6 +426,9 @@ begin
         `CSR_MIE:      csr_mie_r      = csr_wdata_i & `CSR_MIE_MASK;
         `CSR_MEDELEG:  csr_medeleg_r  = csr_wdata_i & `CSR_MEDELEG_MASK;
         `CSR_MIDELEG:  csr_mideleg_r  = csr_wdata_i & `CSR_MIDELEG_MASK;
+	`CSR_MCYCLE,
+        `CSR_MTIME:    csr_mcycle_r   = csr_wdata_i & `CSR_MTIME_MASK;
+
         // Non-std behaviour
         `CSR_MTIMECMP:
         begin
