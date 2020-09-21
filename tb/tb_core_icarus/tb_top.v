@@ -31,6 +31,7 @@ begin
     i = $fread(mem, f);
     for (i=0;i<131072;i=i+1)
         u_mem.write(i, mem[i]);
+
 end
 
 initial
@@ -83,7 +84,7 @@ u_dut
     ,.mem_i_error_i(mem_i_error_w)
     ,.mem_i_inst_i(mem_i_inst_w)
     ,.intr_i(1'b0)
-    ,.reset_vector_i(32'h80000000)
+    ,.reset_vector_i(32'h00000000)
     ,.cpu_id_i('b0)
 
     // Outputs
@@ -103,6 +104,10 @@ u_dut
 );
 
 tcm_mem
+#(
+     .TCM_RAM_SIZE(16384*3),
+     .TCM_ROM_SIZE(16384)
+)
 u_mem
 (
     // Inputs

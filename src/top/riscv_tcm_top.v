@@ -48,7 +48,7 @@ module riscv_tcm_top
     ,parameter SUPPORT_REGFILE_XILINX = 0
     ,parameter EXTRA_DECODE_STAGE = 0
     ,parameter MEM_CACHE_ADDR_MIN = 32'h80000000
-    ,parameter MEM_CACHE_ADDR_MAX = 32'h8fffffff
+    ,parameter MEM_CACHE_ADDR_MAX = 32'hffffffff
     ,parameter NUM_BTB_ENTRIES  = 32
     ,parameter NUM_BTB_ENTRIES_W = 5
     ,parameter NUM_BHT_ENTRIES  = 512
@@ -432,7 +432,7 @@ u_axi
     ,.mem_wr_i(dport_axi_wr_w)
     ,.mem_cacheable_i(dport_axi_cacheable_w)
     ,.mem_req_tag_i(dport_axi_req_tag_w)
-    ,.mem_invalidate_i(dport_riscv_mstnvalidate_w)
+    ,.mem_invalidate_i(dport_axi_invalidate_w)
     ,.mem_writeback_i(dport_axi_writeback_w)
     ,.mem_flush_i(dport_axi_flush_w)
     ,.axi_awready_i(riscv_mst_awready)

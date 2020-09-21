@@ -160,7 +160,7 @@ wire [63:0] mem_i_inst_ram;
 wire [63:0] mem_i_inst_rom;
 wire access_ram = muxed_addr_w>=TCM_ROM_SIZE/8;
 tcm_mem_ram #(
-     .RAM_SIZE(TCM_RAM_SIZE))
+     .TCM_RAM_SIZE(TCM_RAM_SIZE))
 u_ram
 (
     // Instruction fetch
@@ -201,18 +201,21 @@ u_rom
 );
 
 assign mem_i_inst_o = (mem_i_pc_i[15:3]>=TCM_ROM_SIZE/8) ? mem_i_inst_ram : mem_i_inst_rom;//Altus: Select data source RAM/ROM
-assign data_r_w     = (muxed_addr_w    >=TCM_ROM_SIZE/8) ? data_r_w_ram   : data_r_rom    ;//Altus: Select data source RAM/ROM
-
-
 
 reg muxed_hi_q;
+reg [12:0] muxed_addr_q; //Altus: Sample address to select data out between ROM and RAM 
 
 always @ (posedge clk_i or posedge rst_i)
-if (rst_i)
-    muxed_hi_q <= 1'b0;
-else
+    if (rst_i) begin
+    muxed_hi_q   <= 1'b0;
+    muxed_addr_q <= 'b0;
+    end
+    else begin
     muxed_hi_q <= muxed_hi_w;
+    muxed_addr_q <= muxed_addr_w;//Altus: Sample address to select data out between ROM and RAM 
+    end
 
+assign data_r_w     = (muxed_addr_q >=TCM_ROM_SIZE/8)    ? data_r_w_ram   : data_r_rom    ;//Altus: Select data source RAM/ROM
 assign ext_read_data_w = muxed_hi_q ? data_r_w[63:32] : data_r_w[31:0];
 
 //-------------------------------------------------------------
@@ -312,6 +315,7 @@ begin
     	3'd6: u_rom.rom[addr/8][55:48] = data;
     	3'd7: u_rom.rom[addr/8][63:56] = data;
     	endcase
+ //$display ("%h(%h, %h) ",u_rom.rom[addr/8],addr/8,data);
 
 end
 endfunction
