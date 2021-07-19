@@ -49,7 +49,7 @@ $(BUILD_DIR)/tcm.bin: $(ELF_FILE) | $(BUILD_DIR)
 
 $(BUILD_DIR)/$(EXE): $(SRC_V) | $(BUILD_DIR)
 	@echo "# Compiling verilog"
-	iverilog -o $@ $(SRC_V) $(VFLAGS)
+	iverilog $(VFLAGS) -o $@ $(SRC_V)
 
 run: $(BUILD_DIR)/$(EXE) $(BUILD_DIR)/tcm.bin
 	vvp $(BUILD_DIR)/$(EXE) -vcd
