@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------
 //                         biRISC-V CPU
-//                            V0.8.0
+//                            V0.8.1
 //                     Ultra-Embedded.com
 //                     Copyright 2019-2020
 //
@@ -118,16 +118,16 @@ wire           fetch_pc_accept_w;
 
 biriscv_npc
 #(
-     .SUPPORT_BRANCH_PREDICTION(SUPPORT_BRANCH_PREDICTION)
-    ,.NUM_BTB_ENTRIES(NUM_BTB_ENTRIES)
+     .NUM_BTB_ENTRIES(NUM_BTB_ENTRIES)
+    ,.SUPPORT_BRANCH_PREDICTION(SUPPORT_BRANCH_PREDICTION)
+    ,.GSHARE_ENABLE(GSHARE_ENABLE)
+    ,.NUM_RAS_ENTRIES_W(NUM_RAS_ENTRIES_W)
+    ,.NUM_BHT_ENTRIES_W(NUM_BHT_ENTRIES_W)
+    ,.BHT_ENABLE(BHT_ENABLE)
     ,.NUM_BTB_ENTRIES_W(NUM_BTB_ENTRIES_W)
     ,.NUM_BHT_ENTRIES(NUM_BHT_ENTRIES)
-    ,.NUM_BHT_ENTRIES_W(NUM_BHT_ENTRIES_W)
     ,.RAS_ENABLE(RAS_ENABLE)
-    ,.GSHARE_ENABLE(GSHARE_ENABLE)
-    ,.BHT_ENABLE(BHT_ENABLE)
     ,.NUM_RAS_ENTRIES(NUM_RAS_ENTRIES)
-    ,.NUM_RAS_ENTRIES_W(NUM_RAS_ENTRIES_W)
 )
 u_npc
 (
@@ -154,8 +154,8 @@ u_npc
 
 biriscv_decode
 #(
-     .SUPPORT_MULDIV(SUPPORT_MULDIV)
-    ,.EXTRA_DECODE_STAGE(EXTRA_DECODE_STAGE)
+     .EXTRA_DECODE_STAGE(EXTRA_DECODE_STAGE)
+    ,.SUPPORT_MULDIV(SUPPORT_MULDIV)
 )
 u_decode
 (

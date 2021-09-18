@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------
 //                         biRISC-V CPU
-//                            V0.8.0
+//                            V0.8.1
 //                     Ultra-Embedded.com
 //                     Copyright 2019-2020
 //
@@ -743,7 +743,10 @@ wire [31:0] issue_b_rb_value_w;
 
 // Register file: 2W4R
 biriscv_regfile
-#( .SUPPORT_REGFILE_XILINX(SUPPORT_REGFILE_XILINX) )
+#(
+     .SUPPORT_REGFILE_XILINX(SUPPORT_REGFILE_XILINX)
+    ,.SUPPORT_DUAL_ISSUE(SUPPORT_DUAL_ISSUE)
+)
 u_regfile
 (
     .clk_i(clk_i),

@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------
 //                         biRISC-V CPU
-//                            V0.8.0
+//                            V0.8.1
 //                     Ultra-Embedded.com
 //                     Copyright 2019-2020
 //
@@ -152,7 +152,7 @@ begin
             ((opcode_i & `INST_SW_MASK) == `INST_SW)     : dbg_inst_str = "sw";
             ((opcode_i & `INST_ECALL_MASK) == `INST_ECALL)  : dbg_inst_str = "ecall";
             ((opcode_i & `INST_EBREAK_MASK) == `INST_EBREAK) : dbg_inst_str = "ebreak";
-            ((opcode_i & `INST_MRET_MASK) == `INST_MRET)   : dbg_inst_str = "eret";
+            ((opcode_i & `INST_ERET_MASK) == `INST_ERET)   : dbg_inst_str = "eret";
             ((opcode_i & `INST_CSRRW_MASK) == `INST_CSRRW)  : dbg_inst_str = "csrrw";
             ((opcode_i & `INST_CSRRS_MASK) == `INST_CSRRS)  : dbg_inst_str = "csrrs";
             ((opcode_i & `INST_CSRRC_MASK) == `INST_CSRRC)  : dbg_inst_str = "csrrc";

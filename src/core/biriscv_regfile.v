@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------
 //                         biRISC-V CPU
-//                            V0.8.0
+//                            V0.8.1
 //                     Ultra-Embedded.com
 //                     Copyright 2019-2020
 //
@@ -27,7 +27,8 @@ module biriscv_regfile
 // Params
 //-----------------------------------------------------------------
 #(
-     parameter SUPPORT_REGFILE_XILINX = 0
+     parameter SUPPORT_REGFILE_XILINX = 0,
+     parameter SUPPORT_DUAL_ISSUE = 1
 )
 //-----------------------------------------------------------------
 // Ports
@@ -53,12 +54,11 @@ module biriscv_regfile
 );
 
 //-----------------------------------------------------------------
-// Xilinx specific register file
+// Xilinx specific register file (dual issue)
 //-----------------------------------------------------------------
 generate
-if (SUPPORT_REGFILE_XILINX)
+if (SUPPORT_REGFILE_XILINX && SUPPORT_DUAL_ISSUE)
 begin: REGFILE_XILINX
-
     wire [31:0] ra0_value_w[1:0];
     wire [31:0] rb0_value_w[1:0];
     wire [31:0] ra1_value_w[1:0];
@@ -154,6 +154,31 @@ begin: REGFILE_XILINX
     assign rb0_value_o = reg_src_q[rb0_i] ? rb0_value_w[1] : rb0_value_w[0];
     assign ra1_value_o = reg_src_q[ra1_i] ? ra1_value_w[1] : ra1_value_w[0];
     assign rb1_value_o = reg_src_q[rb1_i] ? rb1_value_w[1] : rb1_value_w[0];
+end
+//-----------------------------------------------------------------
+// Xilinx specific register file (single issue)
+//-----------------------------------------------------------------
+else if (SUPPORT_REGFILE_XILINX && !SUPPORT_DUAL_ISSUE)
+begin: REGFILE_XILINX_SINGLE
+
+    biriscv_xilinx_2r1w
+    u_reg
+    (
+        // Inputs
+         .clk_i(clk_i)
+        ,.rst_i(rst_i)
+        ,.rd0_i(rd0_i)
+        ,.rd0_value_i(rd0_value_i)
+        ,.ra_i(ra0_i)
+        ,.rb_i(rb0_i)
+
+        // Outputs
+        ,.ra_value_o(ra0_value_o)
+        ,.rb_value_o(rb0_value_o)
+    );
+
+    assign ra1_value_o = 32'b0;
+    assign rb1_value_o = 32'b0;
 end
 //-----------------------------------------------------------------
 // Flop based register file

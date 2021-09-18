@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------
 //                         biRISC-V CPU
-//                            V0.8.0
+//                            V0.8.1
 //                     Ultra-Embedded.com
 //                     Copyright 2019-2020
 //
@@ -200,10 +200,9 @@
 `define INST_EBREAK 32'h100073
 `define INST_EBREAK_MASK 32'hffffffff
 
-// mret / sret
-`define INST_MRET 32'h10200073
-`define INST_MRET_MASK 32'hdfffffff
-`define INST_MRET_R    29
+// eret
+`define INST_ERET 32'h200073
+`define INST_ERET_MASK 32'hcfffffff
 
 // csrrw
 `define INST_CSRRW 32'h1073
@@ -485,8 +484,11 @@
 `define EXCEPTION_PAGE_FAULT_STORE         6'h1f
 `define EXCEPTION_EXCEPTION                6'h10
 `define EXCEPTION_INTERRUPT                6'h20
-`define EXCEPTION_ERET                     6'h30
-`define EXCEPTION_FENCE                    6'h31
+`define EXCEPTION_ERET_U                   6'h30
+`define EXCEPTION_ERET_S                   6'h31
+`define EXCEPTION_ERET_H                   6'h32
+`define EXCEPTION_ERET_M                   6'h33
+`define EXCEPTION_FENCE                    6'h34
 `define EXCEPTION_TYPE_MASK                6'h30
 `define EXCEPTION_SUBTYPE_R                3:0
 
