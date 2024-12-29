@@ -1,10 +1,24 @@
-# biRISC-V - 32-bit dual issue RISC-V CPU
+<div align="center"> <h1> Computer Organization and Architecture III  </h1>
+</div>
 
-Github: [http://github.com/ultraembedded/biriscv](http://github.com/ultraembedded/biriscv)
+This project is part of the Computer Organization and Architecture III (2024.2) course. The objective of the project was to implement a logical synthesis of [biRISC-V Core](http://github.com/ultraembedded/biriscv) using IBM 180 PDK and perform a Gate Level Simulation.
+
+
+1. [biRISC-V](#biriscv)
+2. [Logic Synthesis](#logic-synthesis)
+3. [Generating Applications](#generating-applications)
+4. [Gate Level Simulation](#gate-level-simulation)
+
+<hr />
+
+## biRISC-V <a name="biriscv"></a>
+
+biRISC-V is a 32-bit dual issue RISC-V CPU made by [Ultraembedded](http://github.com/ultraembedded).
+
 
 ![biRISC-V](docs/biRISC-V.png)
 
-## Features
+### Features
 * 32-bit RISC-V ISA CPU core.
 * Superscalar (dual-issue) in-order 6 or 7 stage pipeline.
 * Support RISC-V’s integer (I), multiplication and division (M), and CSR instructions (Z) extensions (RV32IMZicsr).
@@ -26,109 +40,67 @@ Github: [http://github.com/ultraembedded/biriscv](http://github.com/ultraembedde
 *A sequence showing execution of 2 instructions per cycle;*
 ![Dual-Issue](docs/dual_issue.png)
 
-## Documentation
-* [Configuration](docs/configuration.md)
-* [Booting Linux](docs/linux.md)
-* [Integration](docs/integration.md)
-* [Custom Features](docs/custom.md)
+## Logic Synthesis <a name="logic-synthesis"></a>
 
-## Similar Cores
-* [SiFive E76](https://www.sifive.com/cores/e76)
-  * RV32IMAFC
-  * Dual issue in-order 8 stage pipeline
-  * 4 ALU units (2 early, 2 late)
-  * :heavy_multiplication_x: *Commercial closed source core/$$*
-* [WD SweRV RISC-V Core EH1](https://github.com/chipsalliance/Cores-SweRV)
-  * RV32IMC
-  * Dual issue in-order 9 stage pipeline
-  * 4 ALU units (2 early, 2 late)
-  * :heavy_multiplication_x: *System Verilog + auto signal hookup*
-  * :heavy_multiplication_x: *No data cache option*
-  * :heavy_multiplication_x: *Not able to boot Linux*
+The synsthesis was performed with <i> Cadence RTL Compiler</i> , the execution scripts and the PDK (IBM 180) were provided by professor Mateus Beck.
 
-## Project Aims
-* Boot Linux all the way to a functional userspace environment. :heavy_check_mark:
-* Achieve competitive performance for this class of in-order machine (i.e. aim for 80% of WD SweRV CoreMark score). :heavy_check_mark:
-* Reasonable PPA / FPGA resource friendly. :heavy_check_mark:
-* Fit easily onto cheap hobbyist FPGAs (e.g. Xilinx Artix 7) without using all LUT resources and synthesize > 50MHz. :heavy_check_mark:
-* Support various cache and TCM options. :heavy_check_mark:
-* Be constructed using readable, maintainable and documented IEEE 1364-2001 Verilog. :heavy_check_mark:
-* Simulate in open-source tools such as Verilator and Icarus Verilog. :heavy_check_mark:
-* *In later releases, add support for atomic extensions.*
-
-*Booting the stock Linux 5.0.0-rc8 kernel built for RV32IMA to userspace on a Digilent Arty Artix 7 with biRISC-V (with atomic instructions emulated in the bootloader);*
-![Linux-Boot](docs/linux-boot.png)
-
-## Prior Work
-Based on my previous work;
-* Github: [http://github.com/ultraembedded/riscv](http://github.com/ultraembedded/riscv)
-
-## Getting Started
-
-#### Cloning
-
-To clone this project and its dependencies;
+The core modules that must be included in the synthesis filelist are:
 
 ```
-git clone --recursive https://github.com/ultraembedded/biriscv.git
-
+project
+│   
+│
+└───src
+    │ biriscv_defs.v
+    │ biriscv_alu.v
+    │ biriscv_csr_regfile.v
+    │ biriscv_csr.v
+    │ biriscv_decoder.v
+    │ biriscv_decode.v
+    │ biriscv_divider.v
+    │ biriscv_exec.v
+    │ biriscv_fetch.v
+    │ biriscv_frontend.v
+    │ biriscv_issue.v
+    │ biriscv_lsu.v
+    │ biriscv_mmu.v
+    │ biriscv_multiplier.v
+    │ biriscv_npc.v
+    │ biriscv_pipe_ctrl.v
+    │ biriscv_regfile.v
+    │ biriscv_trace_sim.v
+    │ biriscv_xilinx_2r1w.v
+    │ riscv_core.v
 ```
 
-#### Running Helloworld
-
-To run a simple test image on the core RTL using Icarus Verilog;
+The non-synthesizable testbench modules are:
 
 ```
-# Install Icarus Verilog (Debian / Ubuntu / Linux Mint)
-sudo apt-get install iverilog
-
-# [or] Install Icarus Verilog (Redhat / Centos)
-#sudo yum install iverilog
-
-# Run a simple test image (test.elf)
-cd tb/tb_core_icarus
-make
+project
+│
+│
+└───tb
+   └───tb_core_icarus
+        │   tcm_mem_ram.v
+        │   tcm_mem.v
+        │   biriscv_trace_sim_gls.sv
+        │   tb_top.v
+    
 ```
 
-The expected output is;
-```
-Starting bench
-VCD info: dumpfile waveform.vcd opened for output.
+## Generating Applications <a name="generating-applications"></a>
 
-Test:
-1. Initialised data
-2. Multiply
-3. Divide
-4. Shift left
-5. Shift right
-6. Shift right arithmetic
-7. Signed comparision
-8. Word access
-9. Byte access
-10. Comparision
-```
+On `riscv-app-gen` you can find some risc-v applications (C, bin, elf) in the subdirectories. Also, you can generate your own program file by executing the `make` command specifying the C code e.g `make SRC=main.c`. 
 
-#### Configuration
+You must have [riscv-gnu-toolchain](https://github.com/riscv-collab/riscv-gnu-toolchain) installed with Linux multilib and available in your `PATH` environment variable.
 
-| Param Name                | Valid Range          | Description                                   |
-| ------------------------- |:--------------------:| ----------------------------------------------|
-| SUPPORT_SUPER             | 1/0                  | Enable supervisor / user privilege levels.    |
-| SUPPORT_MMU               | 1/0                  | Enable basic memory management unit.          |
-| SUPPORT_MULDIV            | 1/0                  | Enable HW multiply / divide (RV-M).           |
-| SUPPORT_DUAL_ISSUE        | 1/0                  | Support superscalar operation.                |
-| SUPPORT_LOAD_BYPASS       | 1/0                  | Support load result bypass paths.             |
-| SUPPORT_MUL_BYPASS        | 1/0                  | Support multiply result bypass paths.         |
-| SUPPORT_REGFILE_XILINX    | 1/0                  | Support Xilinx optimised register file.       |
-| SUPPORT_BRANCH_PREDICTION | 1/0                  | Enable branch prediction structures.          |
-| NUM_BTB_ENTRIES           | 2 -                  | Number of branch target buffer entries.       |
-| NUM_BTB_ENTRIES_W         | 1 -                  | Set to log2(NUM_BTB_ENTRIES).                 |
-| NUM_BHT_ENTRIES           | 2 -                  | Number of branch history table entries.       |
-| NUM_BHT_ENTRIES_W         | 1 -                  | Set to log2(NUM_BHT_ENTRIES_W).               |
-| BHT_ENABLE                | 1/0                  | Enable branch history table based prediction. |
-| GSHARE_ENABLE             | 1/0                  | Enable GSHARE branch prediction algorithm.    |
-| RAS_ENABLE                | 1/0                  | Enable return address stack prediction.       |
-| NUM_RAS_ENTRIES           | 2 -                  | Number of return stack addresses supported.   |
-| NUM_RAS_ENTRIES_W         | 1 -                  | Set to log2(NUM_RAS_ENTRIES_W).               |
-| EXTRA_DECODE_STAGE        | 1/0                  | Extra decode pipe stage for improved timing.  |
-| MEM_CACHE_ADDR_MIN        | 32'h0 - 32'hffffffff | Lowest cacheable memory address.              |
-| MEM_CACHE_ADDR_MAX        | 32'h0 - 32'hffffffff | Highest cacheable memory address.             |
+The linker script `riscv-app-gen/link.ld` was obtained from [Google's RISCV-DV](https://github.com/google/riscv-dv).
+
+The entry point specified in the linker command is the main function, therefore, you must check the entry point address code with the comand `make info` e.g `make info ELF=main.elf`. This entry point is required to execute the testbench and need to be passed to the `reset_vector_i` input in `src/riscv_core.v` .
+
+
+## Gate Level Simulation <a name="gate-level-simulation"></a>
+
+Post-synthesis Simulation using Cadence SimVision. Bubble sort execution.
+
+![Dual-Issue](docs/gls_sim_vision_bubble.png)

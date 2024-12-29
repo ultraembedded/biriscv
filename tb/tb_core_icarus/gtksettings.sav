@@ -1,16 +1,20 @@
 [*]
-[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
-[*] Mon Feb 24 23:52:21 2020
+[*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
+[*] Sun Dec  8 00:06:59 2024
 [*]
+[dumpfile] "waveform.vcd"
+[dumpfile_mtime] "Sat Dec  7 23:50:08 2024"
+[dumpfile_size] 89181883
+[savefile] "gtksettings.sav"
 [timestart] 0
-[size] 2560 1385
+[size] 1440 847
 [pos] -1 -1
-*-12.000000 9125 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-15.175314 12000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] tb_top.
 [treeopen] tb_top.u_dut.
 [treeopen] tb_top.u_dut.u_issue.
 [treeopen] tb_top.u_dut.u_issue.u_regfile.
-[sst_width] 202
+[sst_width] 253
 [signals_width] 206
 [sst_expanded] 1
 [sst_vpaned_height] 420
@@ -38,9 +42,8 @@ tb_top.mem_d_wr_w[3:0]
 tb_top.mem_d_addr_w[31:0]
 tb_top.u_mem.mem_d_req_tag_i[10:0]
 tb_top.mem_d_data_wr_w[31:0]
-@29
-tb_top.mem_d_accept_w
 @28
+tb_top.mem_d_accept_w
 tb_top.mem_d_ack_w
 @22
 tb_top.u_mem.mem_d_resp_tag_o[10:0]
@@ -60,6 +63,9 @@ tb_top.u_dut.u_issue.u_pipe0_ctrl.pc_e2_q[31:0]
 tb_top.u_dut.u_issue.u_pipe0_ctrl.pc_wb_q[31:0]
 @1000200
 -PC
+@820
+tb_top.trace_inst_0.dbg_inst_str[79:0]
+tb_top.trace_inst_1.dbg_inst_str[79:0]
 @800200
 -Regfile
 @22
@@ -79,7 +85,9 @@ tb_top.u_dut.u_issue.u_regfile.REGFILE.x12_a2_w[31:0]
 tb_top.u_dut.u_issue.u_regfile.REGFILE.x13_a3_w[31:0]
 tb_top.u_dut.u_issue.u_regfile.REGFILE.x14_a4_w[31:0]
 tb_top.u_dut.u_issue.u_regfile.REGFILE.x15_a5_w[31:0]
+@23
 tb_top.u_dut.u_issue.u_regfile.REGFILE.x16_a6_w[31:0]
+@22
 tb_top.u_dut.u_issue.u_regfile.REGFILE.x17_a7_w[31:0]
 tb_top.u_dut.u_issue.u_regfile.REGFILE.x18_s2_w[31:0]
 tb_top.u_dut.u_issue.u_regfile.REGFILE.x19_s3_w[31:0]

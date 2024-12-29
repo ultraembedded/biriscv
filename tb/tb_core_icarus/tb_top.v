@@ -1,5 +1,7 @@
 module tb_top;
 
+`define trace_gate_level_simulation
+
 reg clk;
 reg rst;
 
@@ -27,7 +29,7 @@ begin
     for (i=0;i<131072;i=i+1)
         mem[i] = 0;
 
-    f = $fopenr("./build/tcm.bin");
+    f = $fopen("./build/tcm.bin", "r");
     i = $fread(mem, f);
     for (i=0;i<131072;i=i+1)
         u_mem.write(i, mem[i]);
@@ -71,8 +73,8 @@ u_dut
 //-----------------------------------------------------------------
 (
     // Inputs
-     .clk_i(clk)
-    ,.rst_i(rst)
+     .clk(clk)
+    ,.rst_n(rst)
     ,.mem_d_data_rd_i(mem_d_data_rd_w)
     ,.mem_d_accept_i(mem_d_accept_w)
     ,.mem_d_ack_i(mem_d_ack_w)
@@ -133,5 +135,23 @@ u_mem
     ,.mem_d_error_o(mem_d_error_w)
     ,.mem_d_resp_tag_o(mem_d_resp_tag_w)
 );
+
+`ifdef trace_gate_level_simulation
+
+biriscv_trace_sim_gls
+trace_inst_0
+(
+     .valid_i(mem_i_valid_w)
+    ,.opcode_i(mem_i_inst_w[31:0])
+);
+
+biriscv_trace_sim_gls
+trace_inst_1
+(
+     .valid_i(mem_i_valid_w)
+    ,.opcode_i(mem_i_inst_w[63:32])
+);
+
+`endif
 
 endmodule

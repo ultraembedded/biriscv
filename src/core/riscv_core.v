@@ -28,7 +28,7 @@ module riscv_core
 // Params
 //-----------------------------------------------------------------
 #(
-     parameter SUPPORT_BRANCH_PREDICTION = 1
+     parameter SUPPORT_BRANCH_PREDICTION = 0
     ,parameter SUPPORT_MULDIV   = 1
     ,parameter SUPPORT_SUPER    = 0
     ,parameter SUPPORT_MMU      = 0
@@ -54,8 +54,8 @@ module riscv_core
 //-----------------------------------------------------------------
 (
     // Inputs
-     input           clk_i
-    ,input           rst_i
+     input           clk
+    ,input           rst_n
     ,input  [ 31:0]  mem_d_data_rd_i
     ,input           mem_d_accept_i
     ,input           mem_d_ack_i
@@ -272,8 +272,8 @@ biriscv_frontend
 u_frontend
 (
     // Inputs
-     .clk_i(clk_i)
-    ,.rst_i(rst_i)
+     .clk_i(clk)
+    ,.rst_i(rst_n)
     ,.icache_accept_i(mmu_ifetch_accept_w)
     ,.icache_valid_i(mmu_ifetch_valid_w)
     ,.icache_error_i(mmu_ifetch_error_w)
@@ -338,8 +338,8 @@ biriscv_mmu
 u_mmu
 (
     // Inputs
-     .clk_i(clk_i)
-    ,.rst_i(rst_i)
+     .clk_i(clk)
+    ,.rst_i(rst_n)
     ,.priv_d_i(mmu_priv_d_w)
     ,.sum_i(mmu_sum_w)
     ,.mxr_i(mmu_mxr_w)
@@ -406,8 +406,8 @@ biriscv_lsu
 u_lsu
 (
     // Inputs
-     .clk_i(clk_i)
-    ,.rst_i(rst_i)
+     .clk_i(clk)
+    ,.rst_i(rst_n)
     ,.opcode_valid_i(lsu_opcode_valid_w)
     ,.opcode_opcode_i(lsu_opcode_opcode_w)
     ,.opcode_pc_i(lsu_opcode_pc_w)
@@ -450,8 +450,8 @@ biriscv_csr
 u_csr
 (
     // Inputs
-     .clk_i(clk_i)
-    ,.rst_i(rst_i)
+     .clk_i(clk)
+    ,.rst_i(rst_n)
     ,.intr_i(intr_i)
     ,.opcode_valid_i(csr_opcode_valid_w)
     ,.opcode_opcode_i(csr_opcode_opcode_w)
@@ -494,8 +494,8 @@ biriscv_multiplier
 u_mul
 (
     // Inputs
-     .clk_i(clk_i)
-    ,.rst_i(rst_i)
+     .clk_i(clk)
+    ,.rst_i(rst_n)
     ,.opcode_valid_i(mul_opcode_valid_w)
     ,.opcode_opcode_i(mul_opcode_opcode_w)
     ,.opcode_pc_i(mul_opcode_pc_w)
@@ -516,8 +516,8 @@ biriscv_divider
 u_div
 (
     // Inputs
-     .clk_i(clk_i)
-    ,.rst_i(rst_i)
+     .clk_i(clk)
+    ,.rst_i(rst_n)
     ,.opcode_valid_i(div_opcode_valid_w)
     ,.opcode_opcode_i(opcode0_opcode_w)
     ,.opcode_pc_i(opcode0_pc_w)
@@ -545,8 +545,8 @@ biriscv_issue
 u_issue
 (
     // Inputs
-     .clk_i(clk_i)
-    ,.rst_i(rst_i)
+     .clk_i(clk)
+    ,.rst_i(rst_n)
     ,.fetch0_valid_i(fetch0_valid_w)
     ,.fetch0_instr_i(fetch0_instr_w)
     ,.fetch0_pc_i(fetch0_pc_w)
@@ -690,8 +690,8 @@ biriscv_exec
 u_exec0
 (
     // Inputs
-     .clk_i(clk_i)
-    ,.rst_i(rst_i)
+     .clk_i(clk)
+    ,.rst_i(rst_n)
     ,.opcode_valid_i(exec0_opcode_valid_w)
     ,.opcode_opcode_i(opcode0_opcode_w)
     ,.opcode_pc_i(opcode0_pc_w)
@@ -723,8 +723,8 @@ biriscv_exec
 u_exec1
 (
     // Inputs
-     .clk_i(clk_i)
-    ,.rst_i(rst_i)
+     .clk_i(clk)
+    ,.rst_i(rst_n)
     ,.opcode_valid_i(exec1_opcode_valid_w)
     ,.opcode_opcode_i(opcode1_opcode_w)
     ,.opcode_pc_i(opcode1_pc_w)
@@ -750,7 +750,6 @@ u_exec1
     ,.branch_d_priv_o(branch_d_exec1_priv_w)
     ,.writeback_value_o(writeback_exec1_value_w)
 );
-
 
 
 endmodule

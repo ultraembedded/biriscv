@@ -300,20 +300,31 @@ assign ifence_o = ifence_q;
 //-----------------------------------------------------------------
 reg        branch_q;
 reg [31:0] branch_target_q;
-reg        reset_q;
+reg [2:0]  init_done;
+
+always @ (posedge clk_i or posedge rst_i)
+if (rst_i)
+begin
+    init_done       <= 2'h0;
+end
+else
+begin
+    if(init_done == 2'h0)
+    begin
+       init_done  <= 2'h1;
+    end
+    else if(init_done <= 2'h1)
+    begin
+       init_done  <= 2'h2;
+    end
+end
+
 
 always @ (posedge clk_i or posedge rst_i)
 if (rst_i)
 begin
     branch_target_q <= 32'b0;
     branch_q        <= 1'b0;
-    reset_q         <= 1'b1;
-end
-else if (reset_q)
-begin
-    branch_target_q <= reset_vector_i;
-    branch_q        <= 1'b1;
-    reset_q         <= 1'b0;
 end
 else
 begin
@@ -321,8 +332,10 @@ begin
     branch_target_q <= csr_target_w;
 end
 
-assign branch_csr_request_o = branch_q;
-assign branch_csr_pc_o      = branch_target_q;
+
+assign branch_csr_request_o = (init_done == 2'b1) ? 1'b1 : branch_q;
+assign branch_csr_pc_o      = (init_done == 2'b1) ? reset_vector_i : branch_target_q;
+
 assign branch_csr_priv_o    = satp_reg_w[`SATP_MODE_R] ? current_priv_w : `PRIV_MACHINE;
 
 //-----------------------------------------------------------------

@@ -3,7 +3,7 @@
 ###############################################################################
 ELF_FILE ?= test.elf
 
-OBJCOPY ?= riscv32-unknown-elf-objcopy
+OBJCOPY ?= riscv64-unknown-elf-objcopy
 ifeq ($(shell which $(OBJCOPY)),)
   ${error $(OBJCOPY) missing from PATH}
 endif
@@ -26,6 +26,7 @@ EXE            ?= output.out
 # Variables: Verilog
 ###############################################################################
 SRC_V       ?= $(foreach src,$(SRC_V_DIR),$(wildcard $(src)/*.v))
+SRC_SV       ?= $(foreach src,$(SRC_V_DIR),$(wildcard $(src)/*.sv))
 
 VFLAGS      += $(patsubst %,-I%,$(SRC_V_DIR))
 VFLAGS      += -DTRACE=$(TRACE)
@@ -49,7 +50,7 @@ $(BUILD_DIR)/tcm.bin: $(ELF_FILE) | $(BUILD_DIR)
 
 $(BUILD_DIR)/$(EXE): $(SRC_V) | $(BUILD_DIR)
 	@echo "# Compiling verilog"
-	iverilog $(VFLAGS) -o $@ $(SRC_V)
+	iverilog $(VFLAGS) -o $@ $(SRC_V) $(SRC_SV)
 
 run: $(BUILD_DIR)/$(EXE) $(BUILD_DIR)/tcm.bin
 	vvp $(BUILD_DIR)/$(EXE) -vcd
