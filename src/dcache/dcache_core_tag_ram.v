@@ -54,9 +54,9 @@ reg [20:0] ram_read0_q;
 always @ (posedge clk1_i)
 begin
     if (wr1_i)
-        ram[addr1_i] = data1_i;
+        ram[addr1_i] <= data1_i;
 
-    ram_read0_q = ram[addr0_i];
+    ram_read0_q <= ram[addr0_i];
 end
 
 assign data0_o = ram_read0_q;
